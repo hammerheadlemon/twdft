@@ -6,7 +6,12 @@ python_executable = "/home/lemon/.local/share/virtualenvs/tw-dev-qpewB347/bin/py
 task = "tw-dft.py"
 
 
-@pytest.fixture(params=['2010-10-10', '2010-10-11', '2019-05-01'])
+@pytest.fixture(params=[
+    ('Port of Harwich', '2010-10-10'),
+    ('Port of Felixtowe', '2010-10-11'),
+    ('Port of Leith', '2019-05-01')
+]
+)
 def test_data(request):
     print('\n--------------------------------------')
     print(f'fixturename     :   {request.fixturename}')
@@ -20,8 +25,8 @@ def test_data(request):
 
 
 def test_basic_inspection_with_date(test_data):
-    date = test_data
-    inspection = "Port of Harwich"
+    inspection = test_data[0]
+    date = test_data[1]
     subprocess.run(
         f'{python_executable} {task} inspection -dt {date} -ds "{inspection}"',
         shell=True,
@@ -35,4 +40,4 @@ def test_basic_inspection_with_date(test_data):
     ).stdout.split(
         "\n"
     )
-    assert f"{test_data} Port of Harwich" in output[3]
+    assert f"{date} {inspection}" in output[3]
