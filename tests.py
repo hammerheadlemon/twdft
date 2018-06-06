@@ -2,17 +2,21 @@ import os
 import pytest
 import subprocess
 
+python_executable = "/home/lemon/.local/share/virtualenvs/tw-dev-qpewB347/bin/python3.6"
+task = "tw-dft.py"
+
 
 @pytest.fixture
-def remove_added_task():
+def cleanup():
     yield None
-    os.unlink('/home/lemon/.task-test/pending.data')
+    os.unlink("/home/lemon/.task-test/pending.data")
 
 
-def test_basic_inspection_with_date(remove_added_task):
-    d = "2018-09-10"
+def test_basic_inspection_with_date(cleanup):
+    date = "2018-09-10"
+    inspection = "Port of Harwich"
     subprocess.run(
-        f'/home/lemon/.local/share/virtualenvs/tw-dev-qpewB347/bin/python3.6 tw-dft.py inspection -dt {d} -ds "Port of Harwich"',
+        f'{python_executable} {task} inspection -dt {date} -ds "{inspection}"',
         shell=True,
     )
     output = subprocess.run(
@@ -21,5 +25,7 @@ def test_basic_inspection_with_date(remove_added_task):
         check=True,
         stdout=subprocess.PIPE,
         encoding="utf-8",
-    ).stdout.split('\n')
+    ).stdout.split(
+        "\n"
+    )
     assert "2018-09-10 Port of Harwich" in output[3]
