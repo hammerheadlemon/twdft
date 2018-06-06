@@ -1,8 +1,8 @@
-import os
 import datetime
+import os
+import parsedatetime
 import subprocess
 import argparse
-import sys
 
 from tasklib import Task, TaskWarrior
 
@@ -24,8 +24,16 @@ def create_task(**kwargs):
     test_task.save()
 
 
-def run(*args):
-    subprocess.run(f"task {' '.join(args)}", check=True, shell=True)
+def clean_date(date):
+    cal = parsedatetime.Calendar()
+    time_struct, parse_status = cal.parse(date)
+    if parse_status == 1:
+        # it is a date object
+        parsed_obj = datetime.date(*time_struct[:3])
+    elif parse_status == 3:
+        # it is a datetime
+        parsed_obj = datetime.datetime(*time_struct[:6])
+    return parsed_obj
 
 
 def main():
@@ -34,10 +42,11 @@ def main():
     parser.add_argument("-dt", "--date", help="The date of the inspection")
     parser.add_argument("-ds", "--description", help="The description of the inspection")
     args = vars(parser.parse_args())
+    date = clean_date(args['date'])
 
     if args['type'] == 'inspection':
         if args['date'] and args['description']:
-            create_task(description=args['description'], inspection_date=args['date'])
+            create_task(description=args['description'], inspection_date=date)
 
 
 if __name__ == "__main__":
