@@ -1,7 +1,6 @@
 import datetime
 import os
 import parsedatetime
-import subprocess
 import argparse
 
 from tasklib import Task, TaskWarrior
@@ -18,6 +17,7 @@ if not os.path.exists(CARDS_DIR):
 
 
 def create_task(**kwargs):
+    import pdb; pdb.set_trace()  # XXX BREAKPOINT
     tw = TaskWarrior(data_location=(HOME / '.task-test'), taskrc_location=TEST_TWRC)
 
     test_task = Task(tw, **kwargs)

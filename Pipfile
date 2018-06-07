@@ -9,16 +9,17 @@ name = "pypi"
 
 parsedatetime = "*"
 tasklib = "*"
+bpython = "*"
+pytest = "*"
+pdbpp = "*"
+neovim = "*"
+"flake8" = "*"
+black = "*"
+ptpython = "*"
 
 
 [dev-packages]
 
-pdbpp = "*"
-neovim = "*"
-"flake8" = "*"
-ptpython = "*"
-pytest = "*"
-black = "*"
 
 
 [requires]
