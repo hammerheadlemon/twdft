@@ -16,8 +16,7 @@ neovim = "*"
 "flake8" = "*"
 black = "*"
 ptpython = "*"
-prompt-toolkit = "*"
-pudb = "*"
+prompt_toolkit = "*"
 
 
 [dev-packages]
