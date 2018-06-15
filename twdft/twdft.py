@@ -69,6 +69,18 @@ def cli(config, verbose):
     """
     Wrapper for task command, specifically for handling DfT inspection data. For personal use!
     Required argument: INSPECTION, a string describing the inspection (e.g. the facility name).
+
+    To run in test mode, set the following environment variables:
+
+        \b
+        set TWDFTRC ~/.test_twrc
+        set TWDFT_DATA_DIR ~/.test_tw_data
+
+    To run in production mode, unset these environment variables:
+
+        \b
+        set -e TWDFTRC
+        set -e TWDFT_DATA_DIR
     """
     config.verbose = verbose
 
