@@ -8,7 +8,26 @@ import click
 from pathlib import Path
 
 HOME = Path.home()
-TEST_TWRC = HOME / '.test_twrc'
+
+# set up the taskrc file
+if os.environ['TWDFTRC']:
+    TWDFTRC = os.environ['TWDFTRC']
+else:
+    try:
+        TWDFTRC = os.environ['TASKRC']
+    except KeyError:
+        TWDFTRC = HOME / '.taskrc'
+
+# set up the task data directory
+if os.environ['TWDFT_DATA_DIR']:
+    TWDFT_DATA_DIR = os.environ['TWDFT_DATA_DIR']
+else:
+    try:
+        TWDFT_DATA_DIR = os.environ['TASKDATA']
+    except KeyError:
+        TWDFT_DATA_DIR = HOME / '.task'
+
+
 CARDS_DIR = HOME / ".tw-dft_cards"
 
 # make the directory
@@ -17,7 +36,7 @@ if not os.path.exists(CARDS_DIR):
 
 
 def create_task(**kwargs):
-    tw = TaskWarrior(data_location=(HOME / '.task-test'), taskrc_location=TEST_TWRC)
+    tw = TaskWarrior(data_location=(TWDFT_DATA_DIR), taskrc_location=TWDFTRC)
 
     test_task = Task(tw, **kwargs)
     test_task.save()
