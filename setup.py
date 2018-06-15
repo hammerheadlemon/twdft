@@ -9,7 +9,7 @@ setup(
     ],
     entry_points={
         'console_scripts': [
-            'twdft=twdft.twdft:main'
+            'twdft=twdft.twdft:cli'
         ]
     }
 )

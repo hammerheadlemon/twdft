@@ -9,8 +9,8 @@ def test_basic_inspection_with_date(date_location):
     inspection = date_location[0]
     date = date_location[1]
 
-    subprocess.run(
-        f'{PYTHON_EXECUTABLE} {TASK} --inspection "{inspection}" --inspectiondate "{date}"',
+    s = subprocess.run(
+        f'twdft inspection "{inspection}" --inspectiondate "{date}"',
         shell=True,
         stdout=subprocess.PIPE,
     )
@@ -29,7 +29,7 @@ def test_basic_inspection_with_date(date_location):
 def test_basic_inspection_with_natural_date_and_location(date_natural_location):
     date = date_natural_location
     subprocess.run(
-        f'{PYTHON_EXECUTABLE} {TASK} --inspection "Haddington" --inspectiondate "{date}"', shell=True, stdout=subprocess.PIPE,
+        f'twdft inspection "Haddington" --inspectiondate "{date}"', shell=True, stdout=subprocess.PIPE,
     )
     output = subprocess.run(
         "env TASKRC=~/.test_twrc TASKDATA=~/.task-test task inspections",
@@ -43,7 +43,7 @@ def test_basic_inspection_with_natural_date_and_time_and_location(date_time_natu
     date = date_time_natural_location['date']
     time = date_time_natural_location['time']
     subprocess.run(
-        f'{PYTHON_EXECUTABLE} {TASK} --inspection "Haddington" --inspectiondate "{date}" --inspectiontime "{time}"', shell=True, stdout=subprocess.PIPE,
+        f'twdft inspection "Haddington" --inspectiondate "{date}" --inspectiontime "{time}"', shell=True, stdout=subprocess.PIPE,
     )
     output = subprocess.run(
         "env TASKRC=~/.test_twrc TASKDATA=~/.task-test task inspections",

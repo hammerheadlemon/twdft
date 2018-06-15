@@ -35,14 +35,19 @@ def clean_date(date):
     return parsed_obj
 
 
-@click.command()
-@click.option('--inspection')
-@click.option('--inspectiondate', default='today')
-@click.option('--inspectiontime', default='10am')
-def main(inspection, inspectiondate, inspectiontime):
+@click.group()
+def cli():
+    pass
+
+
+@cli.command()
+@click.argument('inspection', type=click.STRING)
+@click.option('--inspectiondate', default='today', help="Date of inspection - natural language is fine. Defaults to 'today'.")
+@click.option('--inspectiontime', default='10am', help="Time of inspection - defaults to '10am'")
+def inspection(inspection, inspectiondate, inspectiontime):
+    """
+    Wrapper for task command, specifically for handling DfT inspection data. For personal use!
+    Required argument: INSPECTION, a string describing the inspection (e.g. the facility name).
+    """
     date = clean_date(inspectiondate)
     create_task(description=inspection, inspection_date=date, inspection_time=inspectiontime)
-
-
-if __name__ == "__main__":
-    main()
