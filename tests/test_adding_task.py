@@ -53,8 +53,3 @@ def test_basic_inspection_with_natural_date_and_time_and_location(date_time_natu
         encoding="utf-8").stdout.split("\n")
     assert "2018-08-20 10:30am forwardlook Haddington" in output[3]
 
-
-def test_task_no_subprocess():
-    date = "20 November 2019"
-    twdft.create_task(description="Testes!", date=date)
-
