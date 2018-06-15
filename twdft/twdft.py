@@ -35,19 +35,37 @@ def clean_date(date):
     return parsed_obj
 
 
+class Config:
+    def __init__(self):
+        self.verbose = False
+
+
+pass_config = click.make_pass_decorator(Config, ensure=True)
+
+
 @click.group()
-def cli():
-    pass
+@click.option('--verbose', is_flag=True)
+@pass_config
+def cli(config, verbose):
+    """
+    Wrapper for task command, specifically for handling DfT inspection data. For personal use!
+    Required argument: INSPECTION, a string describing the inspection (e.g. the facility name).
+    """
+    config.verbose = verbose
 
 
 @cli.command()
 @click.argument('inspection', type=click.STRING)
 @click.option('--inspectiondate', default='today', help="Date of inspection - natural language is fine. Defaults to 'today'.")
 @click.option('--inspectiontime', default='10am', help="Time of inspection - defaults to '10am'")
-def inspection(inspection, inspectiondate, inspectiontime):
+@pass_config
+def inspection(config, inspection, inspectiondate, inspectiontime):
     """
-    Wrapper for task command, specifically for handling DfT inspection data. For personal use!
-    Required argument: INSPECTION, a string describing the inspection (e.g. the facility name).
+    Create an inspection.
     """
     date = clean_date(inspectiondate)
+    if config.verbose:
+        click.echo(f"Setting task description to \"{inspection}\"")
+        click.echo(f"Setting task inspection_date to \"{date}\"")
+        click.echo(f"Setting task inspection_time to \"{inspectiontime}\"")
     create_task(description=inspection, inspection_date=date, inspection_time=inspectiontime)
