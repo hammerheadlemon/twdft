@@ -89,4 +89,9 @@ def inspection(config, inspection, inspectiondate, inspectiontime):
         click.echo(f"Setting task description to \"{inspection}\"")
         click.echo(f"Setting task inspection_date to \"{date}\"")
         click.echo(f"Setting task inspection_time to \"{inspectiontime}\"")
-    create_task(description=inspection, inspection_date=date, inspection_time=inspectiontime)
+    create_task(
+        description=inspection,
+        inspection_date=date,
+        inspection_time=inspectiontime,
+        inspection_status="forwardlook"
+    )
