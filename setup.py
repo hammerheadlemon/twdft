@@ -5,7 +5,7 @@ setup(
     version="1.0",
     py_modules=['twdft'],
     install_requires=[
-        'Click',
+        'Click', 'tasklib'
     ],
     entry_points={
         'console_scripts': [
