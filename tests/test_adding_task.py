@@ -9,7 +9,7 @@ def test_basic_inspection_with_date(date_location):
     inspection = date_location[0]
     date = date_location[1]
 
-    s = subprocess.run(
+    subprocess.run(
         f'twdft inspection "{inspection}" --inspectiondate "{date}"',
         shell=True,
         stdout=subprocess.PIPE,
@@ -23,7 +23,7 @@ def test_basic_inspection_with_date(date_location):
     ).stdout.split(
         "\n"
     )
-    assert f"{date} 10am {inspection}" in output[3]
+    assert f"{date} 10am forwardlook {inspection}" in output[3]
 
 
 def test_basic_inspection_with_natural_date_and_location(date_natural_location):
@@ -36,7 +36,7 @@ def test_basic_inspection_with_natural_date_and_location(date_natural_location):
         shell=True,
         stdout=subprocess.PIPE,
         encoding="utf-8").stdout.split("\n")
-    assert "2018-08-20 10am Haddington" in output[3]
+    assert "2018-08-20 10am forwardlook Haddington" in output[3]
 
 
 def test_basic_inspection_with_natural_date_and_time_and_location(date_time_natural_location):
@@ -50,7 +50,7 @@ def test_basic_inspection_with_natural_date_and_time_and_location(date_time_natu
         shell=True,
         stdout=subprocess.PIPE,
         encoding="utf-8").stdout.split("\n")
-    assert "2018-08-20 10:30am Haddington" in output[3]
+    assert "2018-08-20 10:30am forwardlook Haddington" in output[3]
 
 
 def test_task_no_subprocess():
