@@ -23,7 +23,8 @@ def test_basic_inspection_with_date(date_location):
     ).stdout.split(
         "\n"
     )
-    assert f"{date} 10am forwardlook {inspection}" in output[3]
+    assert f"{date}" in output[3]
+    assert f"{inspection}" in output[3]
 
 
 def test_basic_inspection_with_natural_date_and_location(date_natural_location):
