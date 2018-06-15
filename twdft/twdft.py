@@ -1,9 +1,9 @@
 import datetime
 import os
 import parsedatetime
-import argparse
 
 from tasklib import Task, TaskWarrior
+import click
 
 from pathlib import Path
 
@@ -17,7 +17,6 @@ if not os.path.exists(CARDS_DIR):
 
 
 def create_task(**kwargs):
-    import pdb; pdb.set_trace()  # XXX BREAKPOINT
     tw = TaskWarrior(data_location=(HOME / '.task-test'), taskrc_location=TEST_TWRC)
 
     test_task = Task(tw, **kwargs)
@@ -36,17 +35,13 @@ def clean_date(date):
     return parsed_obj
 
 
-def main():
-    parser = argparse.ArgumentParser()
-    parser.add_argument("type", choices=['inspection', 'dft-task'], help="The type of object to create.", nargs="?", default=None)
-    parser.add_argument("-dt", "--date", help="The date of the inspection")
-    parser.add_argument("-ds", "--description", help="The description of the inspection")
-    args = vars(parser.parse_args())
-    date = clean_date(args['date'])
-
-    if args['type'] == 'inspection':
-        if args['date'] and args['description']:
-            create_task(description=args['description'], inspection_date=date)
+@click.command()
+@click.option('--inspection')
+@click.option('--inspectiondate', default='today')
+@click.option('--inspectiontime', default='10am')
+def main(inspection, inspectiondate, inspectiontime):
+    date = clean_date(inspectiondate)
+    create_task(description=inspection, inspection_date=date, inspection_time=inspectiontime)
 
 
 if __name__ == "__main__":

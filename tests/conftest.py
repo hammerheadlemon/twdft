@@ -47,5 +47,5 @@ def date_natural_location():
 
 @pytest.fixture
 def date_time_natural_location():
-    yield "20 August 2018 10am"
-    os.unlink("/home/lemon/.task-test/pending.data")
+    yield {'date': "20 August 2018", 'time': "10:30am"}
+#   os.unlink("/home/lemon/.task-test/pending.data")

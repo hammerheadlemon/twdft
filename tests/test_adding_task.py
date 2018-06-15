@@ -1,8 +1,8 @@
 import subprocess
-from twd_ft import twdft
+from twdft import twdft
 
-python_executable = "/home/lemon/.local/share/virtualenvs/tw-dev-qpewB347/bin/python3.6"
-task = "tw-dft.py"
+PYTHON_EXECUTABLE = "/home/lemon/.local/share/virtualenvs/tw-dev-qpewB347/bin/python3.6"
+TASK = "twdft/twdft.py"
 
 
 def test_basic_inspection_with_date(date_location):
@@ -10,10 +10,11 @@ def test_basic_inspection_with_date(date_location):
     date = date_location[1]
 
     subprocess.run(
-        f'{python_executable} {task} inspection -dt "{date}" -ds "{inspection}"',
+        f'{PYTHON_EXECUTABLE} {TASK} --inspection "{inspection}" --inspectiondate "{date}"',
         shell=True,
         stdout=subprocess.PIPE,
     )
+
     output = subprocess.run(
         "env TASKRC=~/.test_twrc TASKDATA=~/.task-test task inspections",
         shell=True,
@@ -22,33 +23,34 @@ def test_basic_inspection_with_date(date_location):
     ).stdout.split(
         "\n"
     )
-    assert f"{date} {inspection}" in output[3]
+    assert f"{date} 10am {inspection}" in output[3]
 
 
 def test_basic_inspection_with_natural_date_and_location(date_natural_location):
     date = date_natural_location
     subprocess.run(
-        f'{python_executable} {task} inspection -dt "{date}" -ds "Haddington"', shell=True, stdout=subprocess.PIPE,
+        f'{PYTHON_EXECUTABLE} {TASK} --inspection "Haddington" --inspectiondate "{date}"', shell=True, stdout=subprocess.PIPE,
     )
     output = subprocess.run(
         "env TASKRC=~/.test_twrc TASKDATA=~/.task-test task inspections",
         shell=True,
         stdout=subprocess.PIPE,
         encoding="utf-8").stdout.split("\n")
-    assert "2018-08-20 Haddington" in output[3]
+    assert "2018-08-20 10am Haddington" in output[3]
 
 
 def test_basic_inspection_with_natural_date_and_time_and_location(date_time_natural_location):
-    date = date_time_natural_location
+    date = date_time_natural_location['date']
+    time = date_time_natural_location['time']
     subprocess.run(
-        f'{python_executable} {task} inspection -dt "{date}" -ds "Haddington"', shell=True, stdout=subprocess.PIPE,
+        f'{PYTHON_EXECUTABLE} {TASK} --inspection "Haddington" --inspectiondate "{date}" --inspectiontime "{time}"', shell=True, stdout=subprocess.PIPE,
     )
     output = subprocess.run(
         "env TASKRC=~/.test_twrc TASKDATA=~/.task-test task inspections",
         shell=True,
         stdout=subprocess.PIPE,
         encoding="utf-8").stdout.split("\n")
-    assert "2018-08-20T10:30 Haddington" in output[3]
+    assert "2018-08-20 10:30am Haddington" in output[3]
 
 
 def test_task_no_subprocess():
