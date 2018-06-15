@@ -16,11 +16,12 @@ neovim = "*"
 "flake8" = "*"
 black = "*"
 ptpython = "*"
-prompt_toolkit = "*"
+prompt-toolkit = "*"
 
 
 [dev-packages]
 
+ptpython = "*"
 
 
 [requires]
