@@ -1,4 +1,5 @@
 import datetime
+import textwrap
 import os
 import parsedatetime
 
@@ -33,6 +34,26 @@ CARDS_DIR = HOME / ".tw-dft_cards"
 # make the directory
 if not os.path.exists(CARDS_DIR):
     os.makedirs(CARDS_DIR)
+
+
+def _create_card(inspection_name, inspection_date, inspection_time):
+    template = textwrap.dedent(f"""\
+                               # Inspection at port: {inspection_name}
+                               ## Date: {inspection_date}
+                               ## Time: {inspection_time}
+
+                               ## Post Inspection:
+
+                               [ ] - Write up notes and add to Mallard
+                               [ ] - Get comments from fellow inspectors if required
+                               [ ] - Generate letter on Mallard
+                               """
+                               )
+    flattened_name = inspection_name.lower().replace(" ", "-")
+    tmpfile = CARDS_DIR / f"{flattened_name}_{str(inspection_date)}"
+    with open(tmpfile, "wt") as f:
+        f.write(template)
+    os.system("vim " + str(tmpfile))
 
 
 def create_task(**kwargs):
