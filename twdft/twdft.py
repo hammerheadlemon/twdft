@@ -84,6 +84,8 @@ def inspection(config, inspection, inspectiondate, inspectiontime):
     """
     date = clean_date(inspectiondate)
     if config.verbose:
+        click.echo(f"TASKRC is set to {TWDFTRC}")
+        click.echo(f"TASKDATA is set to {TWDFT_DATA_DIR}")
         click.echo(f"Setting task description to \"{inspection}\"")
         click.echo(f"Setting task inspection_date to \"{date}\"")
         click.echo(f"Setting task inspection_time to \"{inspectiontime}\"")
