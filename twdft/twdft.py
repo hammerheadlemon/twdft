@@ -5,6 +5,7 @@ import os
 import parsedatetime
 
 from . helpers import completion_facility_names
+from . helpers import get_inspection_status_choices as status_choice
 
 from tasklib import Task, TaskWarrior
 import click
@@ -186,6 +187,10 @@ def __complete_site():
     type=click.INT
 )
 def flip(config, task_number):
+    """
+    Flip the card on an inspection task to update metadata about the inspection.
+    Opens in vim.
+    """
     tw = TaskWarrior(data_location=(TWDFT_DATA_DIR), taskrc_location=TWDFTRC)
     task = tw.tasks.pending().get(id=task_number)
     card_path = task['card_path']
@@ -193,24 +198,28 @@ def flip(config, task_number):
 
 
 @cli.command()
-@click.argument(
-    "port_facility",
-    type=click.STRING
-)
-@click.option(
-    "--inspectiondate",
-    default="today",
-    help="Date of inspection - natural language is fine. Defaults to 'today'.",
-)
-@click.option(
-    "--inspectiontime",
-    default="10am",
-    help="Time of inspection - defaults to '10am'"
-)
-@click.option(
-    "--opencard",
-    default=False,
-    is_flag=True)
+@pass_config
+@click.argument("task_number", type=click.INT)
+@click.option("--inspectionstatus", type=click.Choice(status_choice()))
+def edit(config, task_number, inspectionstatus):
+    """
+    Edit some element of an inspection task.
+    """
+    tw = TaskWarrior(data_location=(TWDFT_DATA_DIR), taskrc_location=TWDFTRC)
+    task = tw.tasks.pending().get(id=task_number)
+    if inspectionstatus:
+        task['inspection_status'] = inspectionstatus
+        task.save()
+        if config.verbose:
+            click.echo(click.style(f"Changed inspection_status of {task} to "
+                                   f"{inspectionstatus}", fg="yellow"))
+
+
+@cli.command()
+@click.argument("port_facility", type=click.STRING)
+@click.option("--inspectiondate", default="today", help="Date of inspection - natural language is fine. Defaults to 'today'.")
+@click.option("--inspectiontime", default="10am", help="Time of inspection - defaults to '10am'")
+@click.option("--opencard", default=False, is_flag=True)
 @pass_config
 def create_inspection(config, port_facility, inspectiondate, inspectiontime, opencard):
     """
