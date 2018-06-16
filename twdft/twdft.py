@@ -11,22 +11,22 @@ from pathlib import Path
 HOME = Path.home()
 
 # set up the taskrc file
-if os.environ['TWDFTRC']:
-    TWDFTRC = os.environ['TWDFTRC']
+if os.environ["TWDFTRC"]:
+    TWDFTRC = os.environ["TWDFTRC"]
 else:
     try:
-        TWDFTRC = os.environ['TASKRC']
+        TWDFTRC = os.environ["TASKRC"]
     except KeyError:
-        TWDFTRC = HOME / '.taskrc'
+        TWDFTRC = HOME / ".taskrc"
 
 # set up the task data directory
-if os.environ['TWDFT_DATA_DIR']:
-    TWDFT_DATA_DIR = os.environ['TWDFT_DATA_DIR']
+if os.environ["TWDFT_DATA_DIR"]:
+    TWDFT_DATA_DIR = os.environ["TWDFT_DATA_DIR"]
 else:
     try:
-        TWDFT_DATA_DIR = os.environ['TASKDATA']
+        TWDFT_DATA_DIR = os.environ["TASKDATA"]
     except KeyError:
-        TWDFT_DATA_DIR = HOME / '.task'
+        TWDFT_DATA_DIR = HOME / ".task"
 
 
 CARDS_DIR = HOME / ".tw-dft_cards"
@@ -84,12 +84,11 @@ pass_config = click.make_pass_decorator(Config, ensure=True)
 
 
 @click.group()
-@click.option('--verbose', is_flag=True)
+@click.option("--verbose", is_flag=True)
 @pass_config
 def cli(config, verbose):
     """
     Wrapper for task command, specifically for handling DfT inspection data. For personal use!
-    Required argument: INSPECTION, a string describing the inspection (e.g. the facility name).
 
     To run in test mode, set the following environment variables:
 
@@ -107,24 +106,31 @@ def cli(config, verbose):
 
 
 @cli.command()
-@click.argument('inspection', type=click.STRING)
-@click.option('--inspectiondate', default='today', help="Date of inspection - natural language is fine. Defaults to 'today'.")
-@click.option('--inspectiontime', default='10am', help="Time of inspection - defaults to '10am'")
+@click.argument("port_facility", type=click.STRING)
+@click.option(
+    "--inspectiondate",
+    default="today",
+    help="Date of inspection - natural language is fine. Defaults to 'today'.",
+)
+@click.option(
+    "--inspectiontime", default="10am", help="Time of inspection - defaults to '10am'"
+)
+@click.option("--opencard", default=False, is_flag=True)
 @pass_config
-def inspection(config, inspection, inspectiondate, inspectiontime):
+def create_inspection(config, port_facility, inspectiondate, inspectiontime, opencard):
     """
-    Create an inspection.
+    Create an inspection at a PORT_FACILITY.
     """
     date = clean_date(inspectiondate)
     if config.verbose:
         click.echo(f"TASKRC is set to {TWDFTRC}")
         click.echo(f"TASKDATA is set to {TWDFT_DATA_DIR}")
-        click.echo(f"Setting task description to \"{inspection}\"")
-        click.echo(f"Setting task inspection_date to \"{date}\"")
-        click.echo(f"Setting task inspection_time to \"{inspectiontime}\"")
+        click.echo(f'Setting task description to "{port_facility}"')
+        click.echo(f'Setting task inspection_date to "{date}"')
+        click.echo(f'Setting task inspection_time to "{inspectiontime}"')
     create_task(
-        description=inspection,
+        description=port_facility,
         inspection_date=date,
         inspection_time=inspectiontime,
-        inspection_status="forwardlook"
+        inspection_status="forwardlook",
     )

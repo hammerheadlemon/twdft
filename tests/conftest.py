@@ -42,10 +42,11 @@ def date_time_location(request):
 @pytest.fixture
 def date_natural_location():
     yield "20 August 2018"
-    os.unlink("/home/lemon/.task-test/pending.data")
+#   we don't unlink here because the error means no data is created
+#   os.unlink("/home/lemon/.task-test/pending.data")
 
 
 @pytest.fixture
 def date_time_natural_location():
     yield {'date': "20 August 2018", 'time': "10:30am"}
-#   os.unlink("/home/lemon/.task-test/pending.data")
+    os.unlink("/home/lemon/.task-test/pending.data")
