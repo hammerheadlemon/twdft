@@ -36,8 +36,9 @@ if not os.path.exists(CARDS_DIR):
     os.makedirs(CARDS_DIR)
 
 
-def _create_card(inspection_name, inspection_date, inspection_time):
-    template = textwrap.dedent(f"""\
+def _create_card(inspection_name, inspection_date, inspection_time, open_card, verbose):
+    template = textwrap.dedent(
+        f"""\
                                # Inspection at port: {inspection_name}
                                ## Date: {inspection_date}
                                ## Time: {inspection_time}
@@ -48,19 +49,42 @@ def _create_card(inspection_name, inspection_date, inspection_time):
                                [ ] - Get comments from fellow inspectors if required
                                [ ] - Generate letter on Mallard
                                """
-                               )
+    )
     flattened_name = inspection_name.lower().replace(" ", "-")
     tmpfile = CARDS_DIR / f"{flattened_name}_{str(inspection_date)}"
     with open(tmpfile, "wt") as f:
         f.write(template)
-    os.system("vim " + str(tmpfile))
+    if open_card:
+        os.system("vim " + str(tmpfile))
+    if verbose:
+        click.echo(click.style(f"Card created at {tmpfile}", fg='green'))
 
 
 def create_task(**kwargs):
     tw = TaskWarrior(data_location=(TWDFT_DATA_DIR), taskrc_location=TWDFTRC)
 
+    verbose = kwargs.pop('verbose', False)
+    open_card = kwargs.pop('open_card', False)
+
     test_task = Task(tw, **kwargs)
     test_task.save()
+    if open_card:
+        _create_card(
+            inspection_name=kwargs['description'],
+            inspection_date=kwargs['inspection_date'],
+            inspection_time=kwargs['inspection_time'],
+            open_card=True,
+            verbose=verbose
+        )
+    else:
+        _create_card(
+            inspection_name=kwargs['description'],
+            inspection_date=kwargs['inspection_date'],
+            inspection_time=kwargs['inspection_time'],
+            open_card=False,
+            verbose=verbose
+        )
+
 
 
 def clean_date(date):
@@ -106,16 +130,24 @@ def cli(config, verbose):
 
 
 @cli.command()
-@click.argument("port_facility", type=click.STRING)
+@click.argument(
+    "port_facility",
+    type=click.STRING
+)
 @click.option(
     "--inspectiondate",
     default="today",
     help="Date of inspection - natural language is fine. Defaults to 'today'.",
 )
 @click.option(
-    "--inspectiontime", default="10am", help="Time of inspection - defaults to '10am'"
+    "--inspectiontime",
+    default="10am",
+    help="Time of inspection - defaults to '10am'"
 )
-@click.option("--opencard", default=False, is_flag=True)
+@click.option(
+    "--opencard",
+    default=False,
+    is_flag=True)
 @pass_config
 def create_inspection(config, port_facility, inspectiondate, inspectiontime, opencard):
     """
@@ -123,14 +155,23 @@ def create_inspection(config, port_facility, inspectiondate, inspectiontime, ope
     """
     date = clean_date(inspectiondate)
     if config.verbose:
-        click.echo(f"TASKRC is set to {TWDFTRC}")
-        click.echo(f"TASKDATA is set to {TWDFT_DATA_DIR}")
-        click.echo(f'Setting task description to "{port_facility}"')
-        click.echo(f'Setting task inspection_date to "{date}"')
-        click.echo(f'Setting task inspection_time to "{inspectiontime}"')
+        click.echo(click.style(f"TASKRC is set to {TWDFTRC}", fg='yellow'))
+        click.echo(click.style(f"TASKDATA is set to {TWDFT_DATA_DIR}", fg='yellow'))
+        click.echo(click.style(f'Setting task description to "{port_facility}"', fg='green'))
+        click.echo(click.style(f'Setting task inspection_date to "{date}"', fg='green'))
+        click.echo(click.style(f'Setting task inspection_time to "{inspectiontime}"', fg='green'))
+        create_task(
+            description=port_facility,
+            inspection_date=date,
+            inspection_time=inspectiontime,
+            inspection_status="forwardlook",
+            open_card=opencard,
+            verbose=True
+        )
     create_task(
         description=port_facility,
         inspection_date=date,
         inspection_time=inspectiontime,
         inspection_status="forwardlook",
+        open_card=opencard,
     )
