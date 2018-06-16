@@ -14,15 +14,16 @@ pytest = "*"
 pdbpp = "*"
 neovim = "*"
 "flake8" = "*"
-black = "*"
 ptpython = "*"
 prompt-toolkit = "*"
+yapf = "*"
 
 
 [dev-packages]
 
 ptpython = "*"
 mypy = "*"
+yapf = "*"
 
 
 [requires]
