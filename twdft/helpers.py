@@ -9,7 +9,6 @@ def completion_facility_names():
     """
     A function that returns a space-separated string of facility
     names for use in fish completion.
-    import pdb; pdb.set_trace()  # XXX BREAKPOINT
     """
     sites_list = []
     with open(os.path.join(str(TWDFT_DATA_DIR), 'site_dump.csv'), 'r') as f:
