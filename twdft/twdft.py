@@ -58,6 +58,7 @@ def _create_card(inspection_name, inspection_date, inspection_time, open_card, v
         os.system("vim " + str(tmpfile))
     if verbose:
         click.echo(click.style(f"Card created at {tmpfile}", fg='green'))
+    return tmpfile
 
 
 def create_task(**kwargs):
@@ -69,21 +70,25 @@ def create_task(**kwargs):
     test_task = Task(tw, **kwargs)
     test_task.save()
     if open_card:
-        _create_card(
+        card_path = _create_card(
             inspection_name=kwargs['description'],
             inspection_date=kwargs['inspection_date'],
             inspection_time=kwargs['inspection_time'],
             open_card=True,
             verbose=verbose
         )
+        test_task['card_path'] = card_path
+        test_task.save()
     else:
-        _create_card(
+        card_path = _create_card(
             inspection_name=kwargs['description'],
             inspection_date=kwargs['inspection_date'],
             inspection_time=kwargs['inspection_time'],
             open_card=False,
             verbose=verbose
         )
+        test_task['card_path'] = card_path
+        test_task.save()
 
 
 
