@@ -4,8 +4,8 @@ import subprocess
 import os
 import parsedatetime
 
-from . helpers import completion_facility_names
-from . helpers import get_inspection_status_choices as status_choice
+from .helpers import completion_facility_names
+from .helpers import get_inspection_status_choices as status_choice
 
 from tasklib import Task, TaskWarrior
 import click
@@ -21,7 +21,7 @@ else:
     try:
         TWDFTRC = os.environ["TASKRC"]
     except KeyError:
-        TWDFTRC = HOME / ".taskrc"
+        TWDFTRC = str(HOME / ".taskrc")
 
 # set up the task data directory
 if os.environ["TWDFT_DATA_DIR"]:
@@ -30,8 +30,7 @@ else:
     try:
         TWDFT_DATA_DIR = os.environ["TASKDATA"]
     except KeyError:
-        TWDFT_DATA_DIR = HOME / ".task"
-
+        TWDFT_DATA_DIR = str(HOME / ".task")
 
 CARDS_DIR = HOME / ".tw-dft_cards"
 
@@ -40,9 +39,14 @@ if not os.path.exists(CARDS_DIR):
     os.makedirs(CARDS_DIR)
 
 
-def _create_card(inspection_name, inspection_date, inspection_time, open_card, verbose):
-    template = textwrap.dedent(
-        f"""\
+def _create_card(
+    inspection_name: str,
+    inspection_date: str,
+    inspection_time: str,
+    open_card: bool,
+    verbose: bool) -> str:
+
+    template = textwrap.dedent(f"""\
                                # Inspection at port: {inspection_name}
                                ## Date: {inspection_date}
                                ## Time: {inspection_time}
@@ -87,10 +91,12 @@ def _create_card(inspection_name, inspection_date, inspection_time, open_card, v
                                [ ] - Link letter to entry on Mallard
                                [ ] - Close inspection once letter has been sent
                                [ ] - Add a Waiting label to this card and park on Backlog
-                               """
-    )
-    flattened_name = inspection_name.lower().replace(" ", "-").replace("/", "-")
-    tmpfile = CARDS_DIR / f"{flattened_name}_{str(inspection_date)}.twdft"
+                               """)
+    # TODO something about this abberration!
+    flattened_name = inspection_name.lower().replace(" ", "-").replace(
+        "/", "-").replace("(", "-").replace(")", "-")
+    import pdb; pdb.set_trace()  # XXX BREAKPOINT
+    tmpfile = str(CARDS_DIR / f"{flattened_name}_{str(inspection_date)}.twdft")
     with open(tmpfile, "wt") as f:
         f.write(template)
     if open_card:
@@ -114,8 +120,7 @@ def create_task(**kwargs):
             inspection_date=kwargs['inspection_date'],
             inspection_time=kwargs['inspection_time'],
             open_card=True,
-            verbose=verbose
-        )
+            verbose=verbose)
         test_task['card_path'] = card_path
         test_task.save()
     else:
@@ -124,11 +129,9 @@ def create_task(**kwargs):
             inspection_date=kwargs['inspection_date'],
             inspection_time=kwargs['inspection_time'],
             open_card=False,
-            verbose=verbose
-        )
+            verbose=verbose)
         test_task['card_path'] = card_path
         test_task.save()
-
 
 
 def clean_date(date):
@@ -179,13 +182,9 @@ def __complete_site():
     click.echo(completion_facility_names())
 
 
-
 @cli.command()
 @pass_config
-@click.argument(
-    "task_number",
-    type=click.INT
-)
+@click.argument("task_number", type=click.INT)
 def flip(config, task_number):
     """
     Flip the card on an inspection task to update metadata about the inspection.
@@ -211,35 +210,52 @@ def edit(config, task_number, inspectionstatus):
         task['inspection_status'] = inspectionstatus
         task.save()
         if config.verbose:
-            click.echo(click.style(f"Changed inspection_status of {task} to "
-                                   f"{inspectionstatus}", fg="yellow"))
+            click.echo(
+                click.style(
+                    f"Changed inspection_status of {task} to "
+                    f"{inspectionstatus}",
+                    fg="yellow"))
 
 
 @cli.command()
 @click.argument("port_facility", type=click.STRING)
-@click.option("--inspectiondate", default="today", help="Date of inspection - natural language is fine. Defaults to 'today'.")
-@click.option("--inspectiontime", default="10am", help="Time of inspection - defaults to '10am'")
+@click.option(
+    "--inspectiondate",
+    default="today",
+    help="Date of inspection - natural language is fine. Defaults to 'today'.")
+@click.option(
+    "--inspectiontime",
+    default="10am",
+    help="Time of inspection - defaults to '10am'")
 @click.option("--opencard", default=False, is_flag=True)
 @pass_config
-def create_inspection(config, port_facility, inspectiondate, inspectiontime, opencard):
+def create_inspection(config, port_facility, inspectiondate, inspectiontime,
+                      opencard):
     """
     Create an inspection at a PORT_FACILITY.
     """
     date = clean_date(inspectiondate)
     if config.verbose:
         click.echo(click.style(f"TASKRC is set to {TWDFTRC}", fg='yellow'))
-        click.echo(click.style(f"TASKDATA is set to {TWDFT_DATA_DIR}", fg='yellow'))
-        click.echo(click.style(f'Setting task description to "{port_facility}"', fg='green'))
-        click.echo(click.style(f'Setting task inspection_date to "{date}"', fg='green'))
-        click.echo(click.style(f'Setting task inspection_time to "{inspectiontime}"', fg='green'))
+        click.echo(
+            click.style(f"TASKDATA is set to {TWDFT_DATA_DIR}", fg='yellow'))
+        click.echo(
+            click.style(
+                f'Setting task description to "{port_facility}"', fg='green'))
+        click.echo(
+            click.style(
+                f'Setting task inspection_date to "{date}"', fg='green'))
+        click.echo(
+            click.style(
+                f'Setting task inspection_time to "{inspectiontime}"',
+                fg='green'))
         create_task(
             description=port_facility.strip(),
             inspection_date=date,
             inspection_time=inspectiontime,
             inspection_status="forwardlook",
             open_card=opencard,
-            verbose=True
-        )
+            verbose=True)
     create_task(
         description=port_facility.strip(),
         inspection_date=date,

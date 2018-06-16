@@ -1,5 +1,4 @@
 import subprocess
-from twdft import twdft
 
 PYTHON_EXECUTABLE = "/home/lemon/.local/share/virtualenvs/tw-dev-qpewB347/bin/python3.6"
 TASK = "twdft/twdft.py"
