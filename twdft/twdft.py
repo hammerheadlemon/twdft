@@ -4,6 +4,8 @@ import subprocess
 import os
 import parsedatetime
 
+from . helpers import completion_facility_names
+
 from tasklib import Task, TaskWarrior
 import click
 
@@ -45,6 +47,22 @@ def _create_card(inspection_name, inspection_date, inspection_time, open_card, v
                                ## Time: {inspection_time}
                                ## Status: forwardlook
 
+                               ## Planning
+
+                               [ ] - Check Programme for specific inspection objective
+                               [ ] - Check proposed dates with colleages
+                               [ ] - Agree suitable hotel with colleague
+                               [ ] - Email PFSO for XXXX for proposed dates
+                               [ ] - Email PFSO for XXXX for proposed dates
+                               [ ] - Email PFSO for XXXX for proposed dates
+                               [ ] - Enter confirmed dates and details on Mallard and create appointments
+                               [ ] - Put inspections on Mallard
+                               [ ] - Find suitable hotel
+                               [ ] - Book hotel
+                               [ ] - Book car
+                               [ ] - Book train
+                               [ ] - Book flight
+
                                ## Preparation:
 
                                [ ] - Print off previous inspection letters
@@ -62,6 +80,12 @@ def _create_card(inspection_name, inspection_date, inspection_time, open_card, v
                                [ ] - Write up notes and add to Mallard
                                [ ] - Get comments from fellow inspectors if required
                                [ ] - Generate letter on Mallard
+                               [ ] - Spellcheck letter
+                               [ ] - Get comments on letter if required
+                               [ ] - Send letter to PFSO
+                               [ ] - Link letter to entry on Mallard
+                               [ ] - Close inspection once letter has been sent
+                               [ ] - Add a Waiting label to this card and park on Backlog
                                """
     )
     flattened_name = inspection_name.lower().replace(" ", "-").replace("/", "-")
@@ -149,6 +173,12 @@ def cli(config, verbose):
 
 
 @cli.command()
+def complete_site():
+    click.echo(completion_facility_names())
+
+
+
+@cli.command()
 @pass_config
 @click.argument(
     "task_number",
@@ -193,7 +223,7 @@ def create_inspection(config, port_facility, inspectiondate, inspectiontime, ope
         click.echo(click.style(f'Setting task inspection_date to "{date}"', fg='green'))
         click.echo(click.style(f'Setting task inspection_time to "{inspectiontime}"', fg='green'))
         create_task(
-            description=port_facility,
+            description=port_facility.strip(),
             inspection_date=date,
             inspection_time=inspectiontime,
             inspection_status="forwardlook",
@@ -201,7 +231,7 @@ def create_inspection(config, port_facility, inspectiondate, inspectiontime, ope
             verbose=True
         )
     create_task(
-        description=port_facility,
+        description=port_facility.strip(),
         inspection_date=date,
         inspection_time=inspectiontime,
         inspection_status="forwardlook",
