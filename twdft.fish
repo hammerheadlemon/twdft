@@ -1,0 +1,6 @@
+#complete -c twdft -l create_inspection -d "Port Facility Name" -a "(twdft complete_site (commandline -cp))"
+#complete -f -c twdft -d "Create inspection" -a "(twdft complete_site)"
+complete -f -c twdft -d "Port Facility" -a "(twdft complete_site)"
+complete -f -c twdft -l inspectiondate -d "Inspection date"
+complete -f -c twdft -l inspectiontime -d "Inspection time"
+complete -f -c twdft -l opencard -d "Open inspection card in vim"
