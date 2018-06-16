@@ -1,5 +1,6 @@
 import datetime
 import textwrap
+import subprocess
 import os
 import parsedatetime
 
@@ -42,6 +43,19 @@ def _create_card(inspection_name, inspection_date, inspection_time, open_card, v
                                # Inspection at port: {inspection_name}
                                ## Date: {inspection_date}
                                ## Time: {inspection_time}
+                               ## Status: forwardlook
+
+                               ## Preparation:
+
+                               [ ] - Print off previous inspection letters
+                               [ ] - Print off matrix PDF from ~/Nextcloud/dft/Templates/inspection_template.pdf
+                               [ ] - Sync up hotel confirmation email with folder in Outlook
+                               [ ] - Sync up car confirmation email with folder in Outlook
+                               [ ] - Email hotel confirmation to Trello Week Board
+                               [ ] - Email car hire confirmation to Trello Week Board
+                               [ ] - Ensure I have copies of train tickets if applicable
+                               [ ] - Copy packing list to Week board: Inspection Packing
+                               [ ] - Pack according to packing list
 
                                ## Post Inspection:
 
@@ -50,12 +64,12 @@ def _create_card(inspection_name, inspection_date, inspection_time, open_card, v
                                [ ] - Generate letter on Mallard
                                """
     )
-    flattened_name = inspection_name.lower().replace(" ", "-")
-    tmpfile = CARDS_DIR / f"{flattened_name}_{str(inspection_date)}"
+    flattened_name = inspection_name.lower().replace(" ", "-").replace("/", "-")
+    tmpfile = CARDS_DIR / f"{flattened_name}_{str(inspection_date)}.twdft"
     with open(tmpfile, "wt") as f:
         f.write(template)
     if open_card:
-        os.system("vim " + str(tmpfile))
+        subprocess.run(f'vim {str(tmpfile)}', shell=True)
     if verbose:
         click.echo(click.style(f"Card created at {tmpfile}", fg='green'))
     return tmpfile
