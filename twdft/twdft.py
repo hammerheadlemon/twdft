@@ -173,7 +173,8 @@ def cli(config, verbose):
 
 
 @cli.command()
-def complete_site():
+def __complete_site():
+    """Implemented to provide list of facility names to fish completion"""
     click.echo(completion_facility_names())
 
 
