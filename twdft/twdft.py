@@ -149,6 +149,19 @@ def cli(config, verbose):
 
 
 @cli.command()
+@pass_config
+@click.argument(
+    "task_number",
+    type=click.INT
+)
+def flip(config, task_number):
+    tw = TaskWarrior(data_location=(TWDFT_DATA_DIR), taskrc_location=TWDFTRC)
+    task = tw.tasks.pending().get(id=task_number)
+    card_path = task['card_path']
+    subprocess.run(f"vim {card_path}", shell=True)
+
+
+@cli.command()
 @click.argument(
     "port_facility",
     type=click.STRING
