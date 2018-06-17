@@ -2,11 +2,12 @@ import re
 import csv
 import os
 
-from typing import List, Union
+from typing import List, Union, Dict
 
 # these variables need to go elsewhere...
 TWDFT_DATA_DIR = os.environ['TWDFT_DATA_DIR']
 TWDFTRC = os.environ['TWDFTRC']
+SITE_DATA_FILE = 'site_address.csv'
 
 
 def get_inspection_status_choices() -> Union[List[str], List]:
@@ -27,7 +28,7 @@ def completion_facility_names() -> str:
     names for use in fish completion.
     """
     sites_list = []
-    with open(os.path.join(str(TWDFT_DATA_DIR), 'site_dump.csv'), 'r') as f:
+    with open(os.path.join(str(TWDFT_DATA_DIR), SITE_DATA_FILE), 'r') as f:
         csv_reader = csv.DictReader(f)
         for line in csv_reader:
             if line['SiteTypeDesc'] == "Port":
@@ -35,3 +36,12 @@ def completion_facility_names() -> str:
                 sites_list.append(f"{st}\n")
 
     return " ".join(sites_list)
+
+
+def lookup_site_data(site) ->Dict[str, str]: # type: ignore
+    """Lookup details of site from site_dump.csv."""
+    with open(os.path.join(str(TWDFT_DATA_DIR), SITE_DATA_FILE), 'r') as f:
+        csv_reader = csv.DictReader(f)
+        for line in csv_reader:
+            if line['SiteTypeDesc'] == "Port" and line['SiteName'] == site:
+                return line

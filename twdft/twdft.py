@@ -4,7 +4,7 @@ import subprocess
 import os
 import parsedatetime
 
-from .helpers import completion_facility_names
+from .helpers import completion_facility_names, lookup_site_data
 from .helpers import get_inspection_status_choices as status_choice
 
 from tasklib import Task, TaskWarrior
@@ -39,64 +39,83 @@ if not os.path.exists(CARDS_DIR):
     os.makedirs(CARDS_DIR)
 
 
-def _create_card(
-    inspection_name: str,
-    inspection_date: str,
-    inspection_time: str,
-    open_card: bool,
-    verbose: bool) -> str:
+def _create_card(inspection_name: str, inspection_date: str,
+                 inspection_time: str, open_card: bool, verbose: bool) -> str:
+
+    site_data = lookup_site_data(inspection_name)
+    site_notes = site_data.get('SiteNotes', 'No notes available')
+    site_notes = site_notes.replace('\n', '')
+
 
     template = textwrap.dedent(f"""\
-                               # Inspection at port: {inspection_name}
-                               ## Date: {inspection_date}
-                               ## Time: {inspection_time}
-                               ## Status: forwardlook
+                               ## Inspection at port: {inspection_name}
+                               ### Region: {site_data.get('TeamDesc', 'UNKNOWN')}
+                               ### Site Category: {site_data.get('SiteCategoryDesc')}
+                               ### PFSO: {site_data.get('PFSO', 'Unknown PFSO')}
+                               ### Protection Category: {site_data.get('SubCategoryDesc', 'Unknown')}
+                               ### Date: {inspection_date}
+                               ### Time: {inspection_time}
+                               ### Status: forwardlook
+                               ### Last Inspection: {site_data.get('DateOfLastInspection', 'UNKNOWN')}
 
-                               ## Planning
+                               ### Site Notes:
 
-                               [ ] - Check Programme for specific inspection objective
-                               [ ] - Check proposed dates with colleages
-                               [ ] - Agree suitable hotel with colleague
-                               [ ] - Email PFSO for XXXX for proposed dates
-                               [ ] - Email PFSO for XXXX for proposed dates
-                               [ ] - Email PFSO for XXXX for proposed dates
-                               [ ] - Enter confirmed dates and details on Mallard and create appointments
-                               [ ] - Put inspections on Mallard
-                               [ ] - Find suitable hotel
-                               [ ] - Book hotel
-                               [ ] - Book car
-                               [ ] - Book train
-                               [ ] - Book flight
+                               {site_notes}
 
-                               ## Preparation:
+                               ### Address
 
-                               [ ] - Print off previous inspection letters
-                               [ ] - Print off matrix PDF from ~/Nextcloud/dft/Templates/inspection_template.pdf
-                               [ ] - Sync up hotel confirmation email with folder in Outlook
-                               [ ] - Sync up car confirmation email with folder in Outlook
-                               [ ] - Email hotel confirmation to Trello Week Board
-                               [ ] - Email car hire confirmation to Trello Week Board
-                               [ ] - Ensure I have copies of train tickets if applicable
-                               [ ] - Copy packing list to Week board: Inspection Packing
-                               [ ] - Pack according to packing list
+                               {site_data.get('Address1', 'UNKNOWN')},
+                               {site_data.get('Address2', 'UNKNOWN')},
+                               {site_data.get('Town', 'UNKNOWN')},
+                               {site_data.get('County', 'UNKNOWN')},
+                               {site_data.get('Postcode', 'UNKNOWN')},
 
-                               ## Post Inspection:
+                               ### Planning
 
-                               [ ] - Write up notes and add to Mallard
-                               [ ] - Get comments from fellow inspectors if required
-                               [ ] - Generate letter on Mallard
-                               [ ] - Spellcheck letter
-                               [ ] - Get comments on letter if required
-                               [ ] - Send letter to PFSO
-                               [ ] - Link letter to entry on Mallard
-                               [ ] - Close inspection once letter has been sent
-                               [ ] - Add a Waiting label to this card and park on Backlog
+                               * [ ] - Check Programme for specific inspection objective
+                               * [ ] - Check proposed dates with colleages
+                               * [ ] - Agree suitable hotel with colleague
+                               * [ ] - Email PFSO for XXXX for proposed dates
+                               * [ ] - Email PFSO for XXXX for proposed dates
+                               * [ ] - Email PFSO for XXXX for proposed dates
+                               * [ ] - Enter confirmed dates and details on Mallard and create appointments
+                               * [ ] - Put inspections on Mallard
+                               * [ ] - Find suitable hotel
+                               * [ ] - Book hotel
+                               * [ ] - Book car
+                               * [ ] - Book train
+                               * [ ] - Book flight
+
+                               ### Preparation:
+
+                               * [ ] - Print off previous inspection letters
+                               * [ ] - Print off matrix PDF from ~/Nextcloud/dft/Templates/inspection_template.pdf
+                               * [ ] - Sync up hotel confirmation email with folder in Outlook
+                               * [ ] - Sync up car confirmation email with folder in Outlook
+                               * [ ] - Email hotel confirmation to Trello Week Board
+                               * [ ] - Email car hire confirmation to Trello Week Board
+                               * [ ] - Ensure I have copies of train tickets if applicable
+                               * [ ] - Copy packing list to Week board: Inspection Packing
+                               * [ ] - Pack according to packing list
+
+                               ### Post Inspection:
+
+                               * [ ] - Write up notes and add to Mallard
+                               * [ ] - Get comments from fellow inspectors if required
+                               * [ ] - Generate letter on Mallard
+                               * [ ] - Spellcheck letter
+                               * [ ] - Get comments on letter if required
+                               * [ ] - Send letter to PFSO
+                               * [ ] - Link letter to entry on Mallard
+                               * [ ] - Close inspection once letter has been sent
+                               * [ ] - Add a Waiting label to this card and park on Backlog
                                """)
     # TODO something about this abberration!
     flattened_name = inspection_name.lower().replace(" ", "-").replace(
         "/", "-").replace("(", "-").replace(")", "-")
-    import pdb; pdb.set_trace()  # XXX BREAKPOINT
+
     tmpfile = str(CARDS_DIR / f"{flattened_name}_{str(inspection_date)}.twdft")
+
     with open(tmpfile, "wt") as f:
         f.write(template)
     if open_card:
