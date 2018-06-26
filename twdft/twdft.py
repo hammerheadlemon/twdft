@@ -278,6 +278,26 @@ def delete(config, task_number):
 
 
 @cli.command()
+@pass_config
+@click.argument("task_number", type=click.INT)
+@click.argument("destination_directory", type=click.Path(exists=True))
+def pdf(config, task_number, destination_directory):
+    """
+    Export the inspection card to a PDF file. Requires pandoc and wkhtmltopdf to
+    be installed.
+    """
+    tw = TaskWarrior(data_location=(TWDFT_DATA_DIR), taskrc_location=TWDFTRC)
+    try:
+        task = tw.tasks.pending().get(id=task_number)
+    except Task.DoesNotExist:
+        click.echo("That task ID does not exist. Sorry.")
+        sys.exit(1)
+    card_path = task['card_path']
+    clean_name = _clean_site_name_for_path(task['description'])
+    subprocess.run(f'pandoc {card_path} -f markdown -t html5 -o {destination_directory}/{clean_name}.pdf', shell=True)
+
+
+@cli.command()
 @click.argument("port_facility", type=click.STRING)
 @click.option(
     "--inspectiondate",
