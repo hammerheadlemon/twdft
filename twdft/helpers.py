@@ -19,7 +19,7 @@ def get_card_file(task_number):
         task = tw.tasks.pending().get(id=task_number)
     except Task.DoesNotExist:
         click.echo("That task ID does not exist. Sorry.")
-        return
+        sys.exit(1)
     uuid = task['inspection_card_uuid']
     for f in os.listdir(CARDS_DIR):
         if uuid in f:
