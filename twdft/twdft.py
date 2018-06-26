@@ -3,43 +3,20 @@ import uuid
 import textwrap
 import subprocess
 import os
+import sys
 import parsedatetime
 
 from typing import Tuple
 
 from .helpers import completion_facility_names, lookup_site_data
 from .helpers import get_inspection_status_choices as status_choice
+from .helpers import task_card_path, get_card_file
+from .helpers import CardComment
+
+from .env import TWDFTRC, CARDS_DIR, TWDFT_DATA_DIR
 
 from tasklib import Task, TaskWarrior
 import click
-
-from pathlib import Path
-
-HOME = Path.home()
-
-# set up the taskrc file
-if os.environ["TWDFTRC"]:
-    TWDFTRC = os.environ["TWDFTRC"]
-else:
-    try:
-        TWDFTRC = os.environ["TASKRC"]
-    except KeyError:
-        TWDFTRC = str(HOME / ".taskrc")
-
-# set up the task data directory
-if os.environ["TWDFT_DATA_DIR"]:
-    TWDFT_DATA_DIR = os.environ["TWDFT_DATA_DIR"]
-else:
-    try:
-        TWDFT_DATA_DIR = os.environ["TASKDATA"]
-    except KeyError:
-        TWDFT_DATA_DIR = str(HOME / ".task")
-
-CARDS_DIR = HOME / ".tw-dft_cards"
-
-# make the directory
-if not os.path.exists(CARDS_DIR):
-    os.makedirs(CARDS_DIR)
 
 
 def _create_card(inspection_name: str, inspection_date: str,
@@ -112,13 +89,15 @@ def _create_card(inspection_name: str, inspection_date: str,
                                * [ ] - Link letter to entry on Mallard
                                * [ ] - Close inspection once letter has been sent
                                * [ ] - Add a Waiting label to this card and park on Backlog
+
+                               ### Comments:
                                """)
-    # TODO something about this abberration!
     card_uuid = uuid.uuid4()
+    # TODO something about this abberration!
     flattened_name = inspection_name.lower().replace(" ", "-").replace(
         "/", "-").replace("(", "-").replace(")", "-")
 
-    card_file = str(CARDS_DIR / f"{flattened_name}_{str(inspection_date)}_{card_uuid}.twdft")
+    card_file = str(os.path.join(CARDS_DIR , f"{flattened_name}_{str(inspection_date)}_{card_uuid}.twdft"))
 
     with open(card_file, "wt") as f:
         f.write(template)
@@ -202,6 +181,23 @@ def cli(config, verbose):
 
 
 @cli.command()
+@click.argument("task_id", type=click.INT)
+@click.argument("comment", type=click.STRING)
+@pass_config
+def comment(config, task_id, comment):
+    """Add a comment to an inspection task card."""
+    if config.verbose:
+        c = CardComment(task_id, comment)
+        click.echo(
+            click.style(
+                f"Added comment: {comment} to {c.card_file}", fg='yellow'))
+        c.write_to_card()
+    else:
+        c = CardComment(task_id, comment)
+        c.write_to_card()
+
+
+@cli.command()
 def __complete_site():
     """Implemented to provide list of facility names to fish completion"""
     click.echo(completion_facility_names())
@@ -215,9 +211,7 @@ def flip(config, task_number):
     Flip the card on an inspection task to update metadata about the inspection.
     Opens in vim.
     """
-    tw = TaskWarrior(data_location=(TWDFT_DATA_DIR), taskrc_location=TWDFTRC)
-    task = tw.tasks.pending().get(id=task_number)
-    card_path = task['card_path']
+    card_path = task_card_path(task_number)
     subprocess.run(f"vim {card_path}", shell=True)
 
 
@@ -254,20 +248,8 @@ def delete(config, task_number):
     Removes a task and commits its card data to an annotation before deleting
     everything.
     """
-    tw = TaskWarrior(data_location=(TWDFT_DATA_DIR), taskrc_location=TWDFTRC)
-    target = ""
-    try:
-        task = tw.tasks.pending().get(id=task_number)
-    except Task.DoesNotExist:
-        click.echo("That task ID does not exist. Sorry")
-        return
-    uuid = task['inspection_card_uuid']
-    for f in os.listdir(CARDS_DIR):
-        if uuid in f:
-            target = os.path.join(CARDS_DIR, f)
-            break
-    if not target:
-        raise RuntimeError("Cannot find card for this task. Use task to delete.")
+    target = get_card_file(task_number)[0]
+    task = get_card_file(task_number)[1]
     with open(target, 'r', encoding="utf-8") as f:
         d = f.read()
         task.add_annotation(d)
