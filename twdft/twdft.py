@@ -237,6 +237,27 @@ def edit(config, task_number, inspectionstatus):
 
 
 @cli.command()
+@pass_config
+@click.argument("task_number", type=click.INT)
+def delete(config, task_number):
+    tw = TaskWarrior(data_location=(TWDFT_DATA_DIR), taskrc_location=TWDFTRC)
+    task = tw.tasks.pending().get(id=task_number)
+    desc = task['description'].lower().replace(" ", "-")
+    for f in os.listdir(CARDS_DIR):
+        if desc in f:
+            target = os.path.join(CARDS_DIR, f)
+            break
+    if not target:
+        raise RuntimeError("Cannot find card for this task")
+    with open(target, 'r', encoding="utf-8") as f:
+        d = f.read()
+        task.add_annotation(d)
+        task.save()
+    task.delete()
+    os.unlink(target)
+
+
+@cli.command()
 @click.argument("port_facility", type=click.STRING)
 @click.option(
     "--inspectiondate",
