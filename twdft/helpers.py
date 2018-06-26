@@ -1,4 +1,5 @@
 import re
+import sys
 import csv
 import os
 import datetime
@@ -35,7 +36,7 @@ def task_card_path(id) -> str:
         task = tw.tasks.pending().get(id=id)
     except Task.DoesNotExist:
         click.echo("That task ID does not exist. Sorry.")
-        return
+        sys.exit(1)
     card_path = task['card_path']
     return card_path
 
@@ -62,7 +63,7 @@ class CardComment:
             self._task = tw.tasks.pending().get(id=self._task_id)
         except Task.DoesNotExist:
             click.echo("That task ID does not exist. Sorry.")
-            return
+            sys.exit(1)
 
     def _get_now(self):
         self._time_now = str(datetime.datetime.now())
@@ -113,5 +114,5 @@ def lookup_site_data(site) ->Dict[str, str]: # type: ignore
     with open(os.path.join(str(TWDFT_DATA_DIR), SITE_DATA_FILE), 'r') as f:
         csv_reader = csv.DictReader(f)
         for line in csv_reader:
-            if line['SiteTypeDesc'] == "Port" and line['SiteName'] == site:
+            if line['SiteTypeDesc'].strip() == "Port" and line['SiteName'].strip() == site:
                 return line

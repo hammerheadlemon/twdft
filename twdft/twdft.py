@@ -13,7 +13,7 @@ from .helpers import get_inspection_status_choices as status_choice
 from .helpers import task_card_path, get_card_file
 from .helpers import CardComment
 
-from .env import TWDFTRC, CARDS_DIR, TWDFT_DATA_DIR
+from .env import TWDFTRC, CARDS_DIR, TWDFT_DATA_DIR, SITE_DATA_FILE
 
 from tasklib import Task, TaskWarrior
 import click
@@ -28,7 +28,7 @@ def _create_card(inspection_name: str, inspection_date: str,
 
 
     template = textwrap.dedent(f"""\
-                               ## Inspection at port: {inspection_name}
+                               ## Inspection at: {inspection_name}
                                ### Region: {site_data.get('TeamDesc', 'UNKNOWN')}
                                ### Site Category: {site_data.get('SiteCategoryDesc')}
                                ### PFSO: {site_data.get('PFSO', 'Unknown PFSO')}
@@ -94,9 +94,7 @@ def _create_card(inspection_name: str, inspection_date: str,
                                """)
     card_uuid = uuid.uuid4()
     # TODO something about this abberration!
-    flattened_name = inspection_name.lower().replace(" ", "-").replace(
-        "/", "-").replace("(", "-").replace(")", "-")
-
+    flattened_name = _clean_site_name_for_path(inspection_name)
     card_file = str(os.path.join(CARDS_DIR , f"{flattened_name}_{str(inspection_date)}_{card_uuid}.twdft"))
 
     with open(card_file, "wt") as f:
@@ -106,6 +104,25 @@ def _create_card(inspection_name: str, inspection_date: str,
     if verbose:
         click.echo(click.style(f"Card created at {card_file}", fg='green'))
     return card_file, str(card_uuid)
+
+
+def _clean_site_name_for_path(site_name: str) -> str:
+    """
+    Helper function to clean bad characters from a site name
+    so that they don't screw up our path making.
+    """
+    s = site_name
+    s = site_name.lower()
+    s = s.lstrip()
+    s = s.rstrip()
+    s = s.replace(" ", "-")
+    s = s.replace("&", "and")
+    s = s.replace("/", "-")
+    s = s.replace("(", "-")
+    s = s.replace(")", "-")
+    s = s.replace("{", "-")
+    s = s.replace("}", "-")
+    return s
 
 
 def create_task(**kwargs):

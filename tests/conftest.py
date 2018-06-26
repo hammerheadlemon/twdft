@@ -4,6 +4,18 @@ import pytest
 
 
 @pytest.fixture(params=[
+    "Awful Site Name With Space",
+    "Bad & Badder Site",
+    "Test Site/1",
+])
+def bad_site_names(request):
+    print('\n-------------------------------------')
+    print(f'fixturename     :   {request.fixturename}')
+    yield request.param
+
+
+
+@pytest.fixture(params=[
     ('Port of Harwich', '2010-10-10'),
     ('Port of Felixtowe', '2010-10-11'),
     ('Port of Leith', '2019-05-01')
