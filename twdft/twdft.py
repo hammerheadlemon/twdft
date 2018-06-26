@@ -293,7 +293,7 @@ def pdf(config, task_number, destination_directory):
         click.echo("That task ID does not exist. Sorry.")
         sys.exit(1)
     card_path = task['card_path']
-    clean_name = _clean_site_name_for_path(task['description'])
+    clean_name = _clean_site_name_for_path("_".join([task['description'], task['inspection_date']]))
     subprocess.run(f'pandoc {card_path} -f markdown -t html5 -o {destination_directory}/{clean_name}.pdf', shell=True)
 
 
