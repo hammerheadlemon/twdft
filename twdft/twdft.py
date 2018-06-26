@@ -6,7 +6,7 @@ import os
 import sys
 import parsedatetime
 
-from typing import Tuple
+from typing import Tuple, Union
 
 from .helpers import completion_facility_names, lookup_site_data
 from .helpers import get_inspection_status_choices as status_choice
@@ -93,7 +93,6 @@ def _create_card(inspection_name: str, inspection_date: str,
                                ### Comments:
                                """)
     card_uuid = uuid.uuid4()
-    # TODO something about this abberration!
     flattened_name = _clean_site_name_for_path(inspection_name)
     card_file = str(os.path.join(CARDS_DIR , f"{flattened_name}_{str(inspection_date)}_{card_uuid}.twdft"))
 
@@ -155,7 +154,7 @@ def create_task(**kwargs):
         test_task.save()
 
 
-def clean_date(date):
+def clean_date(date) -> Union[datetime.date, datetime.datetime]:
     cal = parsedatetime.Calendar()
     time_struct, parse_status = cal.parse(date)
     if parse_status == 1:
@@ -164,6 +163,9 @@ def clean_date(date):
     elif parse_status == 3:
         # it is a datetime
         parsed_obj = datetime.datetime(*time_struct[:6])
+    elif parse_status == 0:
+        click.echo(f"Cannot parse {date}. Give me something reasonable, buddy!")
+        sys.exit(1)
     return parsed_obj
 
 
