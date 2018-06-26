@@ -1,8 +1,11 @@
 import datetime
+import uuid
 import textwrap
 import subprocess
 import os
 import parsedatetime
+
+from typing import Tuple
 
 from .helpers import completion_facility_names, lookup_site_data
 from .helpers import get_inspection_status_choices as status_choice
@@ -40,7 +43,7 @@ if not os.path.exists(CARDS_DIR):
 
 
 def _create_card(inspection_name: str, inspection_date: str,
-                 inspection_time: str, open_card: bool, verbose: bool) -> str:
+                 inspection_time: str, open_card: bool, verbose: bool) -> Tuple[str, str]:
 
     site_data = lookup_site_data(inspection_name)
     site_notes = site_data.get('SiteNotes', 'No notes available')
@@ -111,18 +114,19 @@ def _create_card(inspection_name: str, inspection_date: str,
                                * [ ] - Add a Waiting label to this card and park on Backlog
                                """)
     # TODO something about this abberration!
+    card_uuid = uuid.uuid4()
     flattened_name = inspection_name.lower().replace(" ", "-").replace(
         "/", "-").replace("(", "-").replace(")", "-")
 
-    tmpfile = str(CARDS_DIR / f"{flattened_name}_{str(inspection_date)}.twdft")
+    card_file = str(CARDS_DIR / f"{flattened_name}_{str(inspection_date)}_{card_uuid}.twdft")
 
-    with open(tmpfile, "wt") as f:
+    with open(card_file, "wt") as f:
         f.write(template)
     if open_card:
-        subprocess.run(f'vim {str(tmpfile)}', shell=True)
+        subprocess.run(f"vim {str(card_file)}", shell=True)
     if verbose:
-        click.echo(click.style(f"Card created at {tmpfile}", fg='green'))
-    return tmpfile
+        click.echo(click.style(f"Card created at {card_file}", fg='green'))
+    return card_file, str(card_uuid)
 
 
 def create_task(**kwargs):
@@ -140,7 +144,8 @@ def create_task(**kwargs):
             inspection_time=kwargs['inspection_time'],
             open_card=True,
             verbose=verbose)
-        test_task['card_path'] = card_path
+        test_task['card_path'] = card_path[0]
+        test_task['inspection_card_uuid'] = card_path[1]
         test_task.save()
     else:
         card_path = _create_card(
@@ -149,7 +154,8 @@ def create_task(**kwargs):
             inspection_time=kwargs['inspection_time'],
             open_card=False,
             verbose=verbose)
-        test_task['card_path'] = card_path
+        test_task['card_path'] = card_path[0]
+        test_task['inspection_card_uuid'] = card_path[1]
         test_task.save()
 
 
@@ -224,7 +230,11 @@ def edit(config, task_number, inspectionstatus):
     Edit some element of an inspection task.
     """
     tw = TaskWarrior(data_location=(TWDFT_DATA_DIR), taskrc_location=TWDFTRC)
-    task = tw.tasks.pending().get(id=task_number)
+    try:
+        task = tw.tasks.pending().get(id=task_number)
+    except Task.DoesNotExist:
+        click.echo("That task ID does not exist. Sorry")
+        return
     if inspectionstatus:
         task['inspection_status'] = inspectionstatus
         task.save()
@@ -240,15 +250,24 @@ def edit(config, task_number, inspectionstatus):
 @pass_config
 @click.argument("task_number", type=click.INT)
 def delete(config, task_number):
+    """
+    Removes a task and commits its card data to an annotation before deleting
+    everything.
+    """
     tw = TaskWarrior(data_location=(TWDFT_DATA_DIR), taskrc_location=TWDFTRC)
-    task = tw.tasks.pending().get(id=task_number)
-    desc = task['description'].lower().replace(" ", "-")
+    target = ""
+    try:
+        task = tw.tasks.pending().get(id=task_number)
+    except Task.DoesNotExist:
+        click.echo("That task ID does not exist. Sorry")
+        return
+    uuid = task['inspection_card_uuid']
     for f in os.listdir(CARDS_DIR):
-        if desc in f:
+        if uuid in f:
             target = os.path.join(CARDS_DIR, f)
             break
     if not target:
-        raise RuntimeError("Cannot find card for this task")
+        raise RuntimeError("Cannot find card for this task. Use task to delete.")
     with open(target, 'r', encoding="utf-8") as f:
         d = f.read()
         task.add_annotation(d)
