@@ -8,7 +8,7 @@ import parsedatetime
 
 from typing import Tuple, Union
 
-from colorama import init, Fore, Style
+from colorama import init, Fore, Style, Back
 
 from .helpers import completion_facility_names, lookup_site_data
 from .helpers import get_inspection_status_choices as status_choice
@@ -24,7 +24,7 @@ from tasklib import Task, TaskWarrior
 import click
 
 # you have to do this for colorama
-init()
+init(autoreset=True)
 
 
 def _create_card(inspection_name: str, inspection_date: str,
@@ -227,7 +227,7 @@ def inspection_rate(config, db_file, sortkey, limit):
     """
     d = get_inspection_periods_all_sites(db_file)
     data = clean_inspection_freq_data(d, sortkey, limit)[1]
-    print("{:<63}{:<1}{:^17}{:<1}{:^15}{:<1}{:^15}{:<1}{:^9}".format('Site', '|', 'Last Inspect.', '|', 'Freq Target', '|', 'Days Since', '|', 'Along'))
+    print(Fore.CYAN + Style.BRIGHT + "{:<63}{:<1}{:^17}{:<1}{:^15}{:<1}{:^15}{:<1}{:^9}".format('Site', '|', 'Last Inspect.', '|', 'Freq Target', '|', 'Days Since', '|', 'Along'))
     print("{:-<121}".format(""))
     for item in data:
         if item[4] > 100:
@@ -245,6 +245,11 @@ def inspection_rate(config, db_file, sortkey, limit):
         print("{:<1}".format("|"), end="")
         print(TERMCOL + "{:^9}".format(item[4]))
         print(Style.RESET_ALL, end="")
+    if limit:
+        print(Back.CYAN + Fore.BLACK + f"Limited to: {limit} rows | Sorted by: {sortkey}")
+    else:
+        print(Back.CYAN + Fore.BLACK + f"All data | Sorted by: {sortkey}")
+
 
 
 @cli.command()
