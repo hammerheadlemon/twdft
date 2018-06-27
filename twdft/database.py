@@ -6,7 +6,7 @@ import os
 from .env import TWDFT_DATA_DIR
 
 
-def clean_inspection_freq_data(data: list, sortkey: str) -> tuple:
+def clean_inspection_freq_data(data: list, sortkey: str, limit: int) -> tuple:
     """
     Takes a list of (site_name, last_inspection, frequence_target)
     tuples and concerts t[1] into a date and t[2] into an integer.
@@ -33,6 +33,8 @@ def clean_inspection_freq_data(data: list, sortkey: str) -> tuple:
             out = sorted(out, key=lambda item: item[SORT_KEYS[sortkey]], reverse=True)
         except ValueError:
             errors.append(t)
+    if limit:
+        out = out[:limit]
     return errors, out
 
 
