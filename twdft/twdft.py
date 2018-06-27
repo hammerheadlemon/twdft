@@ -200,6 +200,15 @@ def cli(config, verbose):
 
 
 @cli.command()
+@click.argument("db_file", type=click.Path(exists=True))
+@pass_config
+def inspection_rate(config, db_file):
+    """
+    Display inspection period data for all sites.
+    """
+
+
+@cli.command()
 @click.argument("task_id", type=click.INT)
 @click.argument("comment", type=click.STRING)
 @pass_config

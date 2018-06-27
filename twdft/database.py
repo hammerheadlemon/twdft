@@ -6,6 +6,40 @@ import os
 from .env import TWDFT_DATA_DIR
 
 
+def _clean_inspection_freq_data(data: list) -> tuple:
+    """
+    Takes a list of (site_name, last_inspection, frequence_target)
+    tuples and concerts t[1] into a date and t[2] into an integer.
+    """
+    errors = []
+    out = []
+    for t in data:
+        try:
+            out.append(
+                (t[0], convert_date_str(t[1]), int(t[2]))
+            )
+        except ValueError:
+            errors.append(t)
+    return errors, out
+
+
+def get_inspection_periods_all_sites(db_name) -> tuple:
+    """
+    Provide data for how a single site fairs in terms
+    of inspection frequency.
+    """
+    db_file = os.path.join(TWDFT_DATA_DIR, db_name)
+    try:
+        conn = sqlite3.connect(db_file)
+    except FileNotFoundError:
+        raise
+    c = conn.cursor()
+    c.execute("SELECT site_name, last_inspection, frequency_target FROM inspections;")
+    result = c.fetchall()
+    conn.close()
+    return result
+
+
 def get_inspection_periods(db_name, site_name) -> tuple:
     """
     Provide data for how a single site fairs in terms
@@ -64,7 +98,10 @@ def convert_date_str(date_str: str) -> datetime.date:
     "Convert from this 16-06-2016 0:00 into a date object."
     date_str = date_str.split(" ")[0]
     date_str = date_str.split("-")
-    date_str = [int(x) for x in date_str]
+    try:
+        date_str = [int(x) for x in date_str]
+    except ValueError:
+        raise
     date_str = [date_str[2], date_str[1], date_str[0]]
     return datetime.date(*date_str)
 
