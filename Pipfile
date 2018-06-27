@@ -1,12 +1,9 @@
 [[source]]
-
 url = "https://pypi.python.org/simple"
 verify_ssl = true
 name = "pypi"
 
-
 [packages]
-
 parsedatetime = "*"
 tasklib = "*"
 bpython = "*"
@@ -17,15 +14,12 @@ neovim = "*"
 ptpython = "*"
 prompt-toolkit = "*"
 yapf = "*"
-
+colorama = "*"
 
 [dev-packages]
-
 ptpython = "*"
 mypy = "*"
 yapf = "*"
 
-
 [requires]
-
 python_version = "3.6"
