@@ -209,13 +209,18 @@ def cli(config, verbose):
 
 @cli.command()
 @click.argument("db_file", type=click.Path(exists=True))
+@click.option(
+    "--sortkey",
+    default="along",
+    help="Column on which to sort the table",
+    type=click.Choice(["freq_target", "along", "days_since", "last_inspection"]))
 @pass_config
-def inspection_rate(config, db_file):
+def inspection_rate(config, db_file, sortkey):
     """
     Display inspection period data for all sites.
     """
     d = get_inspection_periods_all_sites(db_file)
-    data = clean_inspection_freq_data(d)[1]
+    data = clean_inspection_freq_data(d, sortkey)[1]
     print("{:<63}{:<1}{:^17}{:<1}{:^15}{:<1}{:^15}{:<1}{:^9}".format('Site', '|', 'Last Inspect.', '|', 'Freq Target', '|', 'Days Since', '|', 'Along'))
     print("{:-<121}".format(""))
     for item in data:
