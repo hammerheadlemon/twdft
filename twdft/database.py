@@ -23,6 +23,7 @@ def clean_inspection_freq_data(data: list) -> tuple:
             out.append(
                 (t[0], d_obj, frequency_target, days, percent_along_frequency_period)
             )
+            out = sorted(out, key=lambda item: item[4], reverse=True)
         except ValueError:
             errors.append(t)
     return errors, out
