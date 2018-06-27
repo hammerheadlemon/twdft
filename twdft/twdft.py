@@ -216,8 +216,8 @@ def inspection_rate(config, db_file):
     """
     d = get_inspection_periods_all_sites(db_file)
     data = clean_inspection_freq_data(d)[1]
-    print("{:<63}{:<1}{:^17}{:<1}{:^15}{:<1}{:^15}".format('Site', '|', 'Last Inspect.', '|', 'Freq Target', '|', 'Days Since'))
-    print("{:-<110}".format(""))
+    print("{:<63}{:<1}{:^17}{:<1}{:^15}{:<1}{:^15}{:<1}{:^9}".format('Site', '|', 'Last Inspect.', '|', 'Freq Target', '|', 'Days Since', '|', 'Along'))
+    print("{:-<121}".format(""))
     for item in data:
         days = days_since(item[1])
         print(Fore.RED + "{:<63}".format(item[0]), end="")
@@ -227,7 +227,9 @@ def inspection_rate(config, db_file):
         print("{:<1}".format("|"), end="")
         print("{:^15}".format(item[2]), end="")
         print("{:<1}".format("|"), end="")
-        print("{:^15}".format(days.days))
+        print("{:^15}".format(days.days), end="")
+        print("{:<1}".format("|"), end="")
+        print("{:^9}".format(item[4]))
 
 
 @cli.command()

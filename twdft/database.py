@@ -14,11 +14,14 @@ def clean_inspection_freq_data(data: list) -> tuple:
     errors = []
     out = []
     for t in data:
+        frequency_target = int(t[2])
+        days_in_freq = days_in_frequency_target(frequency_target)
         try:
             d_obj = convert_date_str(t[1])
             days = days_since(d_obj).days
+            percent_along_frequency_period = int((days / days_in_freq) * 100)
             out.append(
-                (t[0], d_obj, int(t[2]), days)
+                (t[0], d_obj, frequency_target, days, percent_along_frequency_period)
             )
         except ValueError:
             errors.append(t)
