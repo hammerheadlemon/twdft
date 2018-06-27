@@ -8,17 +8,23 @@ import parsedatetime
 
 from typing import Tuple, Union
 
+from colorama import init, Fore, Style
+
 from .helpers import completion_facility_names, lookup_site_data
 from .helpers import get_inspection_status_choices as status_choice
 from .helpers import task_card_path, get_card_file
 from .helpers import CardComment
 from .database import get_inspection_periods_all_sites
 from .database import clean_inspection_freq_data
+from .database import days_since
 
 from .env import TWDFTRC, CARDS_DIR, TWDFT_DATA_DIR, SITE_DATA_FILE
 
 from tasklib import Task, TaskWarrior
 import click
+
+# you have to do this for colorama
+init()
 
 
 def _create_card(inspection_name: str, inspection_date: str,
@@ -210,14 +216,18 @@ def inspection_rate(config, db_file):
     """
     d = get_inspection_periods_all_sites(db_file)
     data = clean_inspection_freq_data(d)[1]
-    print("{:<63}{:<1}{:^17}{:<1}{:^15}".format('Site', '|',  'Last Inspect.', '|', 'Freq Target'))
-    print("{:-<96}".format(""))
+    print("{:<63}{:<1}{:^17}{:<1}{:^15}{:<1}{:^15}".format('Site', '|', 'Last Inspect.', '|', 'Freq Target', '|', 'Days Since'))
+    print("{:-<110}".format(""))
     for item in data:
-        print("{:<63}".format(item[0]), end="")
+        days = days_since(item[1])
+        print(Fore.RED + "{:<63}".format(item[0]), end="")
+        print(Style.RESET_ALL, end="")
         print("{:<1}".format("|"), end="")
         print("{:^17}".format(item[1].isoformat()), end="")
         print("{:<1}".format("|"), end="")
-        print("{:^15}".format(item[2]))
+        print("{:^15}".format(item[2]), end="")
+        print("{:<1}".format("|"), end="")
+        print("{:^15}".format(days.days))
 
 
 @cli.command()
