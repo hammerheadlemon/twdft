@@ -12,6 +12,8 @@ from .helpers import completion_facility_names, lookup_site_data
 from .helpers import get_inspection_status_choices as status_choice
 from .helpers import task_card_path, get_card_file
 from .helpers import CardComment
+from .database import get_inspection_periods_all_sites
+from .database import clean_inspection_freq_data
 
 from .env import TWDFTRC, CARDS_DIR, TWDFT_DATA_DIR, SITE_DATA_FILE
 
@@ -206,6 +208,13 @@ def inspection_rate(config, db_file):
     """
     Display inspection period data for all sites.
     """
+    d = get_inspection_periods_all_sites(db_file)
+    data = clean_inspection_freq_data(d)[1]
+    click.echo("Site, Last Inspection, Freq Target")
+    for item in data:
+        click.echo(item[0], nl=False)
+        click.echo(item[1].isoformat(), nl=False)
+        click.echo(item[2])
 
 
 @cli.command()

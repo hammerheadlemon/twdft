@@ -6,7 +6,7 @@ import os
 from .env import TWDFT_DATA_DIR
 
 
-def _clean_inspection_freq_data(data: list) -> tuple:
+def clean_inspection_freq_data(data: list) -> tuple:
     """
     Takes a list of (site_name, last_inspection, frequence_target)
     tuples and concerts t[1] into a date and t[2] into an integer.
