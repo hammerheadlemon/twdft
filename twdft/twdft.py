@@ -210,11 +210,14 @@ def inspection_rate(config, db_file):
     """
     d = get_inspection_periods_all_sites(db_file)
     data = clean_inspection_freq_data(d)[1]
-    click.echo("Site, Last Inspection, Freq Target")
+    print("{:<63}{:<1}{:^17}{:<1}{:^15}".format('Site', '|',  'Last Inspect.', '|', 'Freq Target'))
+    print("{:-<96}".format(""))
     for item in data:
-        click.echo(item[0], nl=False)
-        click.echo(item[1].isoformat(), nl=False)
-        click.echo(item[2])
+        print("{:<63}".format(item[0]), end="")
+        print("{:<1}".format("|"), end="")
+        print("{:^17}".format(item[1].isoformat()), end="")
+        print("{:<1}".format("|"), end="")
+        print("{:^15}".format(item[2]))
 
 
 @cli.command()
