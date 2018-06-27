@@ -6,6 +6,23 @@ import os
 from .env import TWDFT_DATA_DIR
 
 
+def get_inspection_periods(db_name, site_name) -> tuple:
+    """
+    Provide data for how a single site fairs in terms
+    of inspection frequency.
+    """
+    db_file = os.path.join(TWDFT_DATA_DIR, db_name)
+    try:
+        conn = sqlite3.connect(db_file)
+    except FileNotFoundError:
+        raise
+    c = conn.cursor()
+    c.execute("SELECT last_inspection, frequency_target FROM inspections WHERE site_name=?", (site_name,))
+    result = c.fetchone()
+    conn.close()
+    return result
+
+
 def import_csv_to_db(csv_file, db_name):
     db_file = os.path.join(TWDFT_DATA_DIR, db_name)
     sites_csv = os.path.join(TWDFT_DATA_DIR, csv_file)
