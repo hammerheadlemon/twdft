@@ -6,7 +6,7 @@ import os
 from .env import TWDFT_DATA_DIR
 
 
-def clean_inspection_freq_data(data: list, sortkey: str, limit: int) -> tuple:
+def clean_inspection_freq_data(data: list, sortkey: str, limit: int, filter: str) -> tuple:
     """
     Takes a list of (site_name, last_inspection, frequence_target)
     tuples and concerts t[1] into a date and t[2] into an integer.
@@ -27,9 +27,15 @@ def clean_inspection_freq_data(data: list, sortkey: str, limit: int) -> tuple:
             d_obj = convert_date_str(t[1])
             days = days_since(d_obj).days
             percent_along_frequency_period = int((days / days_in_freq) * 100)
-            out.append(
-                (t[0], d_obj, frequency_target, days, percent_along_frequency_period)
-            )
+            if filter:
+                if filter in t[0]:
+                    out.append(
+                        (t[0], d_obj, frequency_target, days, percent_along_frequency_period)
+                    )
+            else:
+                out.append(
+                    (t[0], d_obj, frequency_target, days, percent_along_frequency_period)
+                )
             out = sorted(out, key=lambda item: item[SORT_KEYS[sortkey]], reverse=True)
         except ValueError:
             errors.append(t)

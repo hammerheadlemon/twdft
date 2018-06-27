@@ -220,13 +220,18 @@ def cli(config, verbose):
     default=None,
     help="Limit table to certain number of rows",
     type=click.INT)
+@click.option(
+    "--filter",
+    default=None,
+    help="Limit sites to a string - not fuzzy or fancy",
+    type=click.STRING)
 @pass_config
-def inspection_rate(config, db_file, sortkey, limit):
+def inspection_rate(config, db_file, sortkey, limit, filter):
     """
     Display inspection period data for all sites.
     """
     d = get_inspection_periods_all_sites(db_file)
-    data = clean_inspection_freq_data(d, sortkey, limit)[1]
+    data = clean_inspection_freq_data(d, sortkey, limit, filter)[1]
     print(Fore.CYAN + Style.BRIGHT + "{:<63}{:<1}{:^17}{:<1}{:^15}{:<1}{:^15}{:<1}{:^9}".format('Site', '|', 'Last Inspect.', '|', 'Freq Target', '|', 'Days Since', '|', 'Along'))
     print("{:-<121}".format(""))
     for item in data:
