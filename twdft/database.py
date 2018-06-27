@@ -15,8 +15,10 @@ def clean_inspection_freq_data(data: list) -> tuple:
     out = []
     for t in data:
         try:
+            d_obj = convert_date_str(t[1])
+            days = days_since(d_obj).days
             out.append(
-                (t[0], convert_date_str(t[1]), int(t[2]))
+                (t[0], d_obj, int(t[2]), days)
             )
         except ValueError:
             errors.append(t)
