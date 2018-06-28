@@ -80,7 +80,10 @@ def inspection_rate(config, db_file, sortkey, limit, filter):
     # TODO Refactor the baws out of this
     d = get_inspection_periods_all_sites(db_file)
     data = clean_inspection_freq_data(d, sortkey, limit, filter)[1]
-    print(Fore.CYAN + Style.BRIGHT + "{:<63}{:<1}{:^17}{:<1}{:^15}{:<1}{:^15}{:<1}{:^9}".format('Site', '|', 'Last Inspect.', '|', 'Freq Target', '|', 'Days Since', '|', 'Along'))
+    print(Fore.CYAN + Style.BRIGHT +
+          "{:<63}{:<1}{:^17}{:<1}{:^15}{:<1}{:^15}{:<1}{:^9}".format(
+              'Site', '|', 'Last Inspect.', '|', 'Freq Target', '|',
+              'Days Since', '|', 'Along'))
     print("{:-<121}".format(""))
     for item in data:
         if item[4] > 100:
@@ -99,10 +102,10 @@ def inspection_rate(config, db_file, sortkey, limit, filter):
         print(TERMCOL + "{:^9}".format(item[4]))
         print(Style.RESET_ALL, end="")
     if limit:
-        print(Back.CYAN + Fore.BLACK + f"Limited to: {limit} rows | Sorted by: {sortkey}")
+        print(Back.CYAN + Fore.BLACK +
+              f"Limited to: {limit} rows | Sorted by: {sortkey}")
     else:
         print(Back.CYAN + Fore.BLACK + f"All data | Sorted by: {sortkey}")
-
 
 
 @cli.command()
@@ -199,8 +202,11 @@ def pdf(config, task_number, destination_directory):
         click.echo("That task ID does not exist. Sorry.")
         sys.exit(1)
     card_path = task['card_path']
-    clean_name = clean_site_name_for_path("_".join([task['description'], task['inspection_date']]))
-    subprocess.run(f'pandoc {card_path} -f markdown -t html5 -o {destination_directory}/{clean_name}.pdf', shell=True)
+    clean_name = clean_site_name_for_path("_".join(
+        [task['description'], task['inspection_date']]))
+    subprocess.run(
+        f'pandoc {card_path} -f markdown -t html5 -o {destination_directory}/{clean_name}.pdf',
+        shell=True)
 
 
 @cli.command()
