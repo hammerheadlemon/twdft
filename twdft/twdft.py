@@ -113,7 +113,10 @@ def inspection_rate(config, db_file, sortkey, limit, filter):
 @click.argument("comment", required=False, type=click.STRING)
 @pass_config
 def comment(config, task_id, comment):
-    """Add a comment to an inspection task card."""
+    """
+    Add a comment to an inspection task card. Add directly or you
+    can pipe into the command, e.g xclip -o | twdft comment 1
+    """
     # capturing sys.stdin() here allows me to pip in from stdout out of another
     # program such as xclip.
     # This will not allow me to put a breakpoint here though for some reason.
