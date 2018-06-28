@@ -1,75 +1,27 @@
-import datetime
 import subprocess
 import os
 import sys
-import parsedatetime
-
-from typing import Union
 
 from colorama import init, Fore, Style, Back
 
 from .helpers import completion_facility_names
 from .helpers import get_inspection_status_choices as status_choice
-from .helpers import create_card
 from .helpers import task_card_path, get_card_file
 from .helpers import CardComment
+from .helpers import clean_date
 from .helpers import clean_site_name_for_path
+from .helpers import create_task
 from .database import get_inspection_periods_all_sites
 from .database import clean_inspection_freq_data
 from .database import days_since
 
-from .env import TWDFTRC, CARDS_DIR, TWDFT_DATA_DIR
+from .env import TWDFTRC, TWDFT_DATA_DIR
 
 from tasklib import Task, TaskWarrior
 import click
 
 # you have to do this for colorama
 init(autoreset=True)
-
-
-def create_task(**kwargs):
-    tw = TaskWarrior(data_location=(TWDFT_DATA_DIR), taskrc_location=TWDFTRC)
-
-    verbose = kwargs.pop('verbose', False)
-    open_card = kwargs.pop('open_card', False)
-
-    test_task = Task(tw, **kwargs)
-    test_task.save()
-    if open_card:
-        card_path = create_card(
-            inspection_name=kwargs['description'],
-            inspection_date=kwargs['inspection_date'],
-            inspection_time=kwargs['inspection_time'],
-            open_card=True,
-            verbose=verbose)
-        test_task['card_path'] = card_path[0]
-        test_task['inspection_card_uuid'] = card_path[1]
-        test_task.save()
-    else:
-        card_path = create_card(
-            inspection_name=kwargs['description'],
-            inspection_date=kwargs['inspection_date'],
-            inspection_time=kwargs['inspection_time'],
-            open_card=False,
-            verbose=verbose)
-        test_task['card_path'] = card_path[0]
-        test_task['inspection_card_uuid'] = card_path[1]
-        test_task.save()
-
-
-def clean_date(date) -> Union[datetime.date, datetime.datetime]:
-    cal = parsedatetime.Calendar()
-    time_struct, parse_status = cal.parse(date)
-    if parse_status == 1:
-        # it is a date object
-        parsed_obj = datetime.date(*time_struct[:3])
-    elif parse_status == 3:
-        # it is a datetime
-        parsed_obj = datetime.datetime(*time_struct[:6])
-    elif parse_status == 0:
-        click.echo(f"Cannot parse {date}. Give me something reasonable, buddy!")
-        sys.exit(1)
-    return parsed_obj
 
 
 class Config:

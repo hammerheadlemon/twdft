@@ -9,10 +9,58 @@ import datetime
 import click
 import fileinput
 
+import parsedatetime
+
 from typing import List, Union, Dict, Tuple
 from tasklib import TaskWarrior, Task
 
 from .env import TWDFTRC, CARDS_DIR, TWDFT_DATA_DIR, SITE_DATA_FILE
+
+
+def clean_date(date) -> Union[datetime.date, datetime.datetime]:
+    parsed_obj: Union[datetime.date, datetime.datetime]
+    cal = parsedatetime.Calendar()
+    time_struct, parse_status = cal.parse(date)
+    if parse_status == 1:
+        # it is a date object
+        parsed_obj = datetime.date(*time_struct[:3])
+    elif parse_status == 3:
+        # it is a datetime
+        parsed_obj = datetime.datetime(*time_struct[:6])
+    elif parse_status == 0:
+        click.echo(f"Cannot parse {date}. Give me something reasonable, buddy!")
+        sys.exit(1)
+    return parsed_obj
+
+
+def create_task(**kwargs):
+    tw = TaskWarrior(data_location=(TWDFT_DATA_DIR), taskrc_location=TWDFTRC)
+
+    verbose = kwargs.pop('verbose', False)
+    open_card = kwargs.pop('open_card', False)
+
+    test_task = Task(tw, **kwargs)
+    test_task.save()
+    if open_card:
+        card_path = create_card(
+            inspection_name=kwargs['description'],
+            inspection_date=kwargs['inspection_date'],
+            inspection_time=kwargs['inspection_time'],
+            open_card=True,
+            verbose=verbose)
+        test_task['card_path'] = card_path[0]
+        test_task['inspection_card_uuid'] = card_path[1]
+        test_task.save()
+    else:
+        card_path = create_card(
+            inspection_name=kwargs['description'],
+            inspection_date=kwargs['inspection_date'],
+            inspection_time=kwargs['inspection_time'],
+            open_card=False,
+            verbose=verbose)
+        test_task['card_path'] = card_path[0]
+        test_task['inspection_card_uuid'] = card_path[1]
+        test_task.save()
 
 
 def create_card(inspection_name: str, inspection_date: str,
