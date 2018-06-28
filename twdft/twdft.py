@@ -110,10 +110,15 @@ def inspection_rate(config, db_file, sortkey, limit, filter):
 
 @cli.command()
 @click.argument("task_id", type=click.INT)
-@click.argument("comment", type=click.STRING)
+@click.argument("comment", required=False, type=click.STRING)
 @pass_config
 def comment(config, task_id, comment):
     """Add a comment to an inspection task card."""
+    # capturing sys.stdin() here allows me to pip in from stdout out of another
+    # program such as xclip.
+    # This will not allow me to put a breakpoint here though for some reason.
+    if not comment:
+        comment = sys.stdin.read()
     if config.verbose:
         c = CardComment(task_id, comment)
         click.echo(
