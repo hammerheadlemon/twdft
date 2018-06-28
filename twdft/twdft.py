@@ -77,6 +77,7 @@ def inspection_rate(config, db_file, sortkey, limit, filter):
     """
     Display inspection period data for all sites.
     """
+    # TODO Refactor the baws out of this
     d = get_inspection_periods_all_sites(db_file)
     data = clean_inspection_freq_data(d, sortkey, limit, filter)[1]
     print(Fore.CYAN + Style.BRIGHT + "{:<63}{:<1}{:^17}{:<1}{:^15}{:<1}{:^15}{:<1}{:^9}".format('Site', '|', 'Last Inspect.', '|', 'Freq Target', '|', 'Days Since', '|', 'Along'))
