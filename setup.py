@@ -5,7 +5,9 @@ setup(
     version="1.0",
     py_modules=['twdft'],
     install_requires=[
-        'Click', 'tasklib'
+        'Click',
+        'tasklib',
+        'colorama',
     ],
     entry_points={
         'console_scripts': [
