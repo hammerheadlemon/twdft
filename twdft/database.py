@@ -8,7 +8,8 @@ from typing import List, Any, Union
 from .env import TWDFT_DATA_DIR
 
 
-def clean_inspection_freq_data(data: list, sortkey: str, limit: int, filter: str) -> tuple:
+def clean_inspection_freq_data(data: list, sortkey: str, limit: int,
+                               filter: str) -> tuple:
     """
     Takes a list of (site_name, last_inspection, frequence_target)
     tuples and concerts t[1] into a date and t[2] into an integer.
@@ -31,14 +32,13 @@ def clean_inspection_freq_data(data: list, sortkey: str, limit: int, filter: str
             percent_along_frequency_period = int((days / days_in_freq) * 100)
             if filter:
                 if filter in t[0]:
-                    out.append(
-                        (t[0], d_obj, frequency_target, days, percent_along_frequency_period)
-                    )
+                    out.append((t[0], d_obj, frequency_target, days,
+                                percent_along_frequency_period))
             else:
-                out.append(
-                    (t[0], d_obj, frequency_target, days, percent_along_frequency_period)
-                )
-            out = sorted(out, key=lambda item: item[SORT_KEYS[sortkey]], reverse=True)
+                out.append((t[0], d_obj, frequency_target, days,
+                            percent_along_frequency_period))
+            out = sorted(
+                out, key=lambda item: item[SORT_KEYS[sortkey]], reverse=True)
         except ValueError:
             errors.append(t)
     if limit:
@@ -57,7 +57,9 @@ def get_inspection_periods_all_sites(db_name) -> List[Any]:
     except FileNotFoundError:
         raise
     c = conn.cursor()
-    c.execute("SELECT site_name, last_inspection, frequency_target FROM inspections;")
+    c.execute(
+        "SELECT site_name, last_inspection, frequency_target FROM inspections;"
+    )
     result = c.fetchall()
     conn.close()
     return result
@@ -74,7 +76,9 @@ def get_inspection_periods(db_name, site_name) -> tuple:
     except FileNotFoundError:
         raise
     c = conn.cursor()
-    c.execute("SELECT last_inspection, frequency_target FROM inspections WHERE site_name=?", (site_name,))
+    c.execute(
+        "SELECT last_inspection, frequency_target FROM inspections WHERE site_name=?",
+        (site_name, ))
     result = c.fetchone()
     conn.close()
     return result
@@ -100,17 +104,14 @@ def import_csv_to_db(csv_file, db_name):
             frequency_target TEXT,
             last_inspection TEXT
               )
-            """
-              )
+            """)
 
     with open(sites_csv, 'r') as f:
         csv_reader = csv.DictReader(f)
 
         for line in csv_reader:
-            data = (line['SiteName'],
-                    line['SubCategoryDesc'],
-                    line['SiteCategoryDesc'],
-                    line['FrequencyTarget'],
+            data = (line['SiteName'], line['SubCategoryDesc'],
+                    line['SiteCategoryDesc'], line['FrequencyTarget'],
                     line['DateOfLastInspection'])
             c.execute("INSERT INTO inspections VALUES(?,?,?,?,?)", data)
     conn.commit()
