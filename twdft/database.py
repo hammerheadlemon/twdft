@@ -3,6 +3,8 @@ import datetime
 import sqlite3
 import os
 
+from typing import List, Any, Union
+
 from .env import TWDFT_DATA_DIR
 
 
@@ -44,7 +46,7 @@ def clean_inspection_freq_data(data: list, sortkey: str, limit: int, filter: str
     return errors, out
 
 
-def get_inspection_periods_all_sites(db_name) -> tuple:
+def get_inspection_periods_all_sites(db_name) -> List[Any]:
     """
     Provide data for how a single site fairs in terms
     of inspection frequency.
@@ -118,16 +120,16 @@ def import_csv_to_db(csv_file, db_name):
 def convert_date_str(date_str: str) -> datetime.date:
     "Convert from this 16-06-2016 0:00 into a date object."
     date_str = date_str.split(" ")[0]
-    date_str = date_str.split("-")
+    date_str_l: Union[List[str], List[int]] = date_str.split("-")
     try:
-        date_str = [int(x) for x in date_str]
+        date_str_l = [int(x) for x in date_str_l]
     except ValueError:
         raise
-    date_str = [date_str[2], date_str[1], date_str[0]]
-    return datetime.date(*date_str)
+    date_str_l = [date_str_l[2], date_str_l[1], date_str_l[0]]
+    return datetime.date(*date_str_l)
 
 
-def days_since(d: datetime.date) -> int:
+def days_since(d: datetime.date) -> datetime.timedelta:
     "Returns number of days since a date."
     return datetime.date.today() - d
 
