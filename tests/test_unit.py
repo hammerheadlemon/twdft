@@ -1,4 +1,4 @@
-from twdft.twdft import _clean_site_name_for_path as clean_site_name
+from twdft.helpers import clean_site_name_for_path as clean_site_name
 
 
 def test_clean_bad_site_names(bad_site_names):

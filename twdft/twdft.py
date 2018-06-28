@@ -1,135 +1,30 @@
 import datetime
-import uuid
-import textwrap
 import subprocess
 import os
 import sys
 import parsedatetime
 
-from typing import Tuple, Union
+from typing import Union
 
 from colorama import init, Fore, Style, Back
 
-from .helpers import completion_facility_names, lookup_site_data
+from .helpers import completion_facility_names
 from .helpers import get_inspection_status_choices as status_choice
+from .helpers import create_card
 from .helpers import task_card_path, get_card_file
 from .helpers import CardComment
+from .helpers import clean_site_name_for_path
 from .database import get_inspection_periods_all_sites
 from .database import clean_inspection_freq_data
 from .database import days_since
 
-from .env import TWDFTRC, CARDS_DIR, TWDFT_DATA_DIR, SITE_DATA_FILE
+from .env import TWDFTRC, CARDS_DIR, TWDFT_DATA_DIR
 
 from tasklib import Task, TaskWarrior
 import click
 
 # you have to do this for colorama
 init(autoreset=True)
-
-
-def _create_card(inspection_name: str, inspection_date: str,
-                 inspection_time: str, open_card: bool, verbose: bool) -> Tuple[str, str]:
-
-    site_data = lookup_site_data(inspection_name)
-    site_notes = site_data.get('SiteNotes', 'No notes available')
-    site_notes = site_notes.replace('\n', '')
-
-
-    template = textwrap.dedent(f"""\
-                               ## Inspection at: {inspection_name}
-                               ### Region: {site_data.get('TeamDesc', 'UNKNOWN')}
-                               ### Site Category: {site_data.get('SiteCategoryDesc')}
-                               ### PFSO: {site_data.get('PFSO', 'Unknown PFSO')}
-                               ### Protection Category: {site_data.get('SubCategoryDesc', 'Unknown')}
-                               ### Date: {inspection_date}
-                               ### Time: {inspection_time}
-                               ### Status: forwardlook
-                               ### Last Inspection: {site_data.get('DateOfLastInspection', 'UNKNOWN')}
-
-                               ### Site Notes:
-
-                               {site_notes}
-
-                               ### Address
-
-                               {site_data.get('Address1', 'UNKNOWN')},
-                               {site_data.get('Address2', 'UNKNOWN')},
-                               {site_data.get('Town', 'UNKNOWN')},
-                               {site_data.get('County', 'UNKNOWN')},
-                               {site_data.get('Postcode', 'UNKNOWN')},
-
-                               ### Planning
-
-                               * [ ] - Check Programme for specific inspection objective
-                               * [ ] - Check proposed dates with colleages
-                               * [ ] - Agree suitable hotel with colleague
-                               * [ ] - Email PFSO for XXXX for proposed dates
-                               * [ ] - Email PFSO for XXXX for proposed dates
-                               * [ ] - Email PFSO for XXXX for proposed dates
-                               * [ ] - Enter confirmed dates and details on Mallard and create appointments
-                               * [ ] - Put inspections on Mallard
-                               * [ ] - Find suitable hotel
-                               * [ ] - Book hotel
-                               * [ ] - Book car
-                               * [ ] - Book train
-                               * [ ] - Book flight
-
-                               ### Preparation:
-
-                               * [ ] - Print off previous inspection letters
-                               * [ ] - Print off matrix PDF from ~/Nextcloud/dft/Templates/inspection_template.pdf
-                               * [ ] - Sync up hotel confirmation email with folder in Outlook
-                               * [ ] - Sync up car confirmation email with folder in Outlook
-                               * [ ] - Email hotel confirmation to Trello Week Board
-                               * [ ] - Email car hire confirmation to Trello Week Board
-                               * [ ] - Ensure I have copies of train tickets if applicable
-                               * [ ] - Copy packing list to Week board: Inspection Packing
-                               * [ ] - Pack according to packing list
-
-                               ### Post Inspection:
-
-                               * [ ] - Write up notes and add to Mallard
-                               * [ ] - Get comments from fellow inspectors if required
-                               * [ ] - Generate letter on Mallard
-                               * [ ] - Spellcheck letter
-                               * [ ] - Get comments on letter if required
-                               * [ ] - Send letter to PFSO
-                               * [ ] - Link letter to entry on Mallard
-                               * [ ] - Close inspection once letter has been sent
-                               * [ ] - Add a Waiting label to this card and park on Backlog
-
-                               ### Comments:
-                               """)
-    card_uuid = uuid.uuid4()
-    flattened_name = _clean_site_name_for_path(inspection_name)
-    card_file = str(os.path.join(CARDS_DIR , f"{flattened_name}_{str(inspection_date)}_{card_uuid}.twdft"))
-
-    with open(card_file, "wt") as f:
-        f.write(template)
-    if open_card:
-        subprocess.run(f"vim {str(card_file)}", shell=True)
-    if verbose:
-        click.echo(click.style(f"Card created at {card_file}", fg='green'))
-    return card_file, str(card_uuid)
-
-
-def _clean_site_name_for_path(site_name: str) -> str:
-    """
-    Helper function to clean bad characters from a site name
-    so that they don't screw up our path making.
-    """
-    s = site_name
-    s = site_name.lower()
-    s = s.lstrip()
-    s = s.rstrip()
-    s = s.replace(" ", "-")
-    s = s.replace("&", "and")
-    s = s.replace("/", "-")
-    s = s.replace("(", "-")
-    s = s.replace(")", "-")
-    s = s.replace("{", "-")
-    s = s.replace("}", "-")
-    return s
 
 
 def create_task(**kwargs):
@@ -141,7 +36,7 @@ def create_task(**kwargs):
     test_task = Task(tw, **kwargs)
     test_task.save()
     if open_card:
-        card_path = _create_card(
+        card_path = create_card(
             inspection_name=kwargs['description'],
             inspection_date=kwargs['inspection_date'],
             inspection_time=kwargs['inspection_time'],
@@ -151,7 +46,7 @@ def create_task(**kwargs):
         test_task['inspection_card_uuid'] = card_path[1]
         test_task.save()
     else:
-        card_path = _create_card(
+        card_path = create_card(
             inspection_name=kwargs['description'],
             inspection_date=kwargs['inspection_date'],
             inspection_time=kwargs['inspection_time'],
@@ -351,7 +246,7 @@ def pdf(config, task_number, destination_directory):
         click.echo("That task ID does not exist. Sorry.")
         sys.exit(1)
     card_path = task['card_path']
-    clean_name = _clean_site_name_for_path("_".join([task['description'], task['inspection_date']]))
+    clean_name = clean_site_name_for_path("_".join([task['description'], task['inspection_date']]))
     subprocess.run(f'pandoc {card_path} -f markdown -t html5 -o {destination_directory}/{clean_name}.pdf', shell=True)
 
 
