@@ -8,6 +8,7 @@ setup(
         'Click',
         'tasklib',
         'colorama',
+        'parsedatetime',
     ],
     entry_points={
         'console_scripts': [
