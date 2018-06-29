@@ -131,7 +131,6 @@ def initial_db_setup() -> None:
     db_is_new = not os.path.exists(db_path)
 
     if db_is_new:
-        print(f"Creating schema in {db_filename}")
         with sqlite3.connect(db_path) as conn:
             c = conn.cursor()
             c.execute("""
@@ -171,7 +170,8 @@ def initial_db_setup() -> None:
                             inspection_due TEXT
                             )
                          """)
-            print("Inserting initial data...")
+            c.execute("""
+                      CREATE TABLE
             for site in map(Site._make, csv.reader(open(csv_path, "r"))):
                 c.execute(f"""
                              INSERT INTO site(
