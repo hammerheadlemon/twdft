@@ -130,9 +130,6 @@ def initial_db_setup() -> None:
     csv_path = os.path.join(TWDFT_DATA_DIR, csv_filename)
     db_is_new = not os.path.exists(db_path)
 
-    schema = "base_schema.sql"
-    schema_path = os.path.join(os.path.dirname(os.path.realpath(__file__)), schema)
-
     if db_is_new:
         print(f"Creating schema in {db_filename}")
         with sqlite3.connect(db_path) as conn:
@@ -176,7 +173,6 @@ def initial_db_setup() -> None:
                          """)
             print("Inserting initial data...")
             for site in map(Site._make, csv.reader(open(csv_path, "r"))):
-                print("Putting data in...")
                 c.execute(f"""
                              INSERT INTO site(
                                 id,
