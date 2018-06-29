@@ -3,15 +3,51 @@ import datetime
 import sqlite3
 import os
 
-from typing import List, Any, Union
+from typing import List, Any, Union, NamedTuple
 
 from .env import TWDFT_DATA_DIR
+
+
+class Site(NamedTuple):
+    id: int
+    name: str
+    site_type: str
+    sub_category: str
+    address_1: str
+    address_2: str
+    town: str
+    county: str
+    country: str
+    postcode: str
+    site_category: str
+    freq_target: str
+    created: str
+    notes: str
+    last_inspection: str
+    next_inspection: str
+    pfsp_approval: str
+    pfsp_expiry: str
+    unlocode: str
+    pfso: str
+    pso: str
+    pfsa_approval: str
+    pfsa_expiry: str
+    team: str
+    created_by: str
+    last_updated: str
+    updated_by: str
+    afp_loc: str
+    rdf: str
+    classification: str
+    article24: str
+    psa_approval: str
+    inspection_due: str
 
 
 def clean_inspection_freq_data(data: list, sortkey: str, limit: int,
                                filter: str) -> tuple:
     """
-    Takes a list of (site_name, last_inspection, frequence_target)
+    takes a list of (site_name, last_inspection, frequence_target)
     tuples and concerts t[1] into a date and t[2] into an integer.
     """
     SORT_KEYS = {
@@ -82,6 +118,137 @@ def get_inspection_periods(db_name, site_name) -> tuple:
     result = c.fetchone()
     conn.close()
     return result
+
+
+def initial_db_setup() -> None:
+    """
+    Initial db file set up.
+    """
+    db_filename = "twdft.db"
+    db_path = os.path.join(TWDFT_DATA_DIR, db_filename)
+    csv_filename = "sites.csv"
+    csv_path = os.path.join(TWDFT_DATA_DIR, csv_filename)
+    db_is_new = not os.path.exists(db_path)
+
+    schema = "base_schema.sql"
+    schema_path = os.path.join(os.path.dirname(os.path.realpath(__file__)), schema)
+
+    if db_is_new:
+        print(f"Creating schema in {db_filename}")
+        with sqlite3.connect(db_path) as conn:
+            c = conn.cursor()
+            c.execute("""
+                            CREATE TABLE site(
+                            id INTEGER PRIMARY KEY,
+                            name TEXT,
+                            site_type TEXT,
+                            sub_category TEXT,
+                            address_1 TEXT,
+                            address_2 TEXT,
+                            town TEXT,
+                            county TEXT,
+                            country TEXT,
+                            postcode TEXT,
+                            site_category TEXT,
+                            freq_target TEXT,
+                            created TEXT,
+                            notes TEXT,
+                            last_inspection TEXT,
+                            next_inspection TEXT,
+                            pfsp_approval TEXT,
+                            pfsp_expiry TEXT,
+                            unlocode TEXT,
+                            pfso TEXT,
+                            pso TEXT,
+                            pfsa_approval TEXT,
+                            pfsa_expiry TEXT,
+                            team TEXT,
+                            created_by TEXT,
+                            last_updated TEXT,
+                            updated_by TEXT,
+                            afp_loc TEXT,
+                            rdf TEXT,
+                            classification TEXT,
+                            article24 TEXT,
+                            psa_approval TEXT,
+                            inspection_due TEXT
+                            )
+                         """)
+            print("Inserting initial data...")
+            for site in map(Site._make, csv.reader(open(csv_path, "r"))):
+                print("Putting data in...")
+                c.execute(f"""
+                             INSERT INTO site(
+                                id,
+                                name,
+                                site_type,
+                                sub_category,
+                                address_1,
+                                address_2,
+                                town,
+                                county,
+                                country,
+                                postcode,
+                                site_category,
+                                freq_target,
+                                created,
+                                notes,
+                                last_inspection,
+                                next_inspection,
+                                pfsp_approval,
+                                pfsp_expiry,
+                                unlocode,
+                                pfso,
+                                pso,
+                                pfsa_approval,
+                                pfsa_expiry,
+                                team,
+                                created_by,
+                                last_updated,
+                                updated_by,
+                                afp_loc,
+                                rdf,
+                                classification,
+                                article24,
+                                psa_approval,
+                                inspection_due
+                             ) VALUES(?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)""",
+                          (site.id,
+                           site.name,
+                           site.site_type,
+                           site.sub_category,
+                           site.address_1,
+                           site.address_2,
+                           site.town,
+                           site.county,
+                           site.country,
+                           site.postcode,
+                           site.site_category,
+                           site.freq_target,
+                           site.created,
+                           site.notes,
+                           site.last_inspection,
+                           site.next_inspection,
+                           site.pfsp_approval,
+                           site.pfsp_expiry,
+                           site.unlocode,
+                           site.pfso,
+                           site.pso,
+                           site.pfsa_approval,
+                           site.pfsa_expiry,
+                           site.team,
+                           site.created_by,
+                           site.last_updated,
+                           site.updated_by,
+                           site.afp_loc,
+                           site.rdf,
+                           site.classification,
+                           site.article24,
+                           site.psa_approval,
+                           site.inspection_due)
+                )
+
+
 
 
 def import_csv_to_db(csv_file, db_name):
