@@ -17,6 +17,7 @@ pdbpp = "*"
 "flake8-mypy" = "*"
 black = "*"
 yapf = "*"
+ptpython = "*"
 
 
 [requires]
