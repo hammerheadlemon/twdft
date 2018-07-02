@@ -44,18 +44,14 @@ class Site(NamedTuple):
     inspection_due: str
 
 
-def clean_inspection_freq_data(data: list, sortkey: str, limit: int,
-                               filter: str) -> tuple:
+def clean_inspection_freq_data(
+    data: list, sortkey: str, limit: int, filter: str
+) -> tuple:
     """
     takes a list of (site_name, last_inspection, frequence_target)
     tuples and concerts t[1] into a date and t[2] into an integer.
     """
-    SORT_KEYS = {
-        "last_inspection": 1,
-        "freq_target": 2,
-        "days_since": 3,
-        "along": 4
-    }
+    SORT_KEYS = {"last_inspection": 1, "freq_target": 2, "days_since": 3, "along": 4}
 
     errors = []
     out = []
@@ -68,13 +64,26 @@ def clean_inspection_freq_data(data: list, sortkey: str, limit: int,
             percent_along_frequency_period = int((days / days_in_freq) * 100)
             if filter:
                 if filter in t[0]:
-                    out.append((t[0], d_obj, frequency_target, days,
-                                percent_along_frequency_period))
+                    out.append(
+                        (
+                            t[0],
+                            d_obj,
+                            frequency_target,
+                            days,
+                            percent_along_frequency_period,
+                        )
+                    )
             else:
-                out.append((t[0], d_obj, frequency_target, days,
-                            percent_along_frequency_period))
-            out = sorted(
-                out, key=lambda item: item[SORT_KEYS[sortkey]], reverse=True)
+                out.append(
+                    (
+                        t[0],
+                        d_obj,
+                        frequency_target,
+                        days,
+                        percent_along_frequency_period,
+                    )
+                )
+            out = sorted(out, key=lambda item: item[SORT_KEYS[sortkey]], reverse=True)
         except ValueError:
             errors.append(t)
     if limit:
@@ -93,9 +102,7 @@ def get_inspection_periods_all_sites(db_name) -> List[Any]:
     except FileNotFoundError:
         raise
     c = conn.cursor()
-    c.execute(
-        "SELECT site_name, last_inspection, frequency_target FROM inspections;"
-    )
+    c.execute("SELECT site_name, last_inspection, frequency_target FROM inspections;")
     result = c.fetchall()
     conn.close()
     return result
@@ -114,7 +121,8 @@ def get_inspection_periods(db_name, site_name) -> tuple:
     c = conn.cursor()
     c.execute(
         "SELECT last_inspection, frequency_target FROM inspections WHERE site_name=?",
-        (site_name, ))
+        (site_name,),
+    )
     result = c.fetchone()
     conn.close()
     return result
@@ -133,7 +141,8 @@ def initial_db_setup() -> None:
     if db_is_new:
         with sqlite3.connect(db_path) as conn:
             c = conn.cursor()
-            c.execute("""
+            c.execute(
+                """
                             CREATE TABLE site(
                             id INTEGER PRIMARY KEY,
                             name TEXT,
@@ -169,11 +178,12 @@ def initial_db_setup() -> None:
                             psa_approval TEXT,
                             inspection_due TEXT
                             )
-                         """)
-            c.execute("""
-                      CREATE TABLE
+                         """
+            )
+
             for site in map(Site._make, csv.reader(open(csv_path, "r"))):
-                c.execute(f"""
+                c.execute(
+                    f"""
                              INSERT INTO site(
                                 id,
                                 name,
@@ -209,42 +219,42 @@ def initial_db_setup() -> None:
                                 psa_approval,
                                 inspection_due
                              ) VALUES(?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)""",
-                          (site.id,
-                           site.name,
-                           site.site_type,
-                           site.sub_category,
-                           site.address_1,
-                           site.address_2,
-                           site.town,
-                           site.county,
-                           site.country,
-                           site.postcode,
-                           site.site_category,
-                           site.freq_target,
-                           site.created,
-                           site.notes,
-                           site.last_inspection,
-                           site.next_inspection,
-                           site.pfsp_approval,
-                           site.pfsp_expiry,
-                           site.unlocode,
-                           site.pfso,
-                           site.pso,
-                           site.pfsa_approval,
-                           site.pfsa_expiry,
-                           site.team,
-                           site.created_by,
-                           site.last_updated,
-                           site.updated_by,
-                           site.afp_loc,
-                           site.rdf,
-                           site.classification,
-                           site.article24,
-                           site.psa_approval,
-                           site.inspection_due)
+                    (
+                        site.id,
+                        site.name,
+                        site.site_type,
+                        site.sub_category,
+                        site.address_1,
+                        site.address_2,
+                        site.town,
+                        site.county,
+                        site.country,
+                        site.postcode,
+                        site.site_category,
+                        site.freq_target,
+                        site.created,
+                        site.notes,
+                        site.last_inspection,
+                        site.next_inspection,
+                        site.pfsp_approval,
+                        site.pfsp_expiry,
+                        site.unlocode,
+                        site.pfso,
+                        site.pso,
+                        site.pfsa_approval,
+                        site.pfsa_expiry,
+                        site.team,
+                        site.created_by,
+                        site.last_updated,
+                        site.updated_by,
+                        site.afp_loc,
+                        site.rdf,
+                        site.classification,
+                        site.article24,
+                        site.psa_approval,
+                        site.inspection_due,
+                    ),
                 )
-
-
 
 
 def import_csv_to_db(csv_file, db_name):
@@ -255,11 +265,14 @@ def import_csv_to_db(csv_file, db_name):
 
     c = conn.cursor()
 
-    c.execute("""
+    c.execute(
+        """
               DROP TABLE IF EXISTS inspections;
-              """)
+              """
+    )
 
-    c.execute("""
+    c.execute(
+        """
             CREATE TABLE inspections(
             site_name TEXT,
             prot_category TEXT,
@@ -267,15 +280,20 @@ def import_csv_to_db(csv_file, db_name):
             frequency_target TEXT,
             last_inspection TEXT
               )
-            """)
+            """
+    )
 
-    with open(sites_csv, 'r') as f:
+    with open(sites_csv, "r") as f:
         csv_reader = csv.DictReader(f)
 
         for line in csv_reader:
-            data = (line['SiteName'], line['SubCategoryDesc'],
-                    line['SiteCategoryDesc'], line['FrequencyTarget'],
-                    line['DateOfLastInspection'])
+            data = (
+                line["SiteName"],
+                line["SubCategoryDesc"],
+                line["SiteCategoryDesc"],
+                line["FrequencyTarget"],
+                line["DateOfLastInspection"],
+            )
             c.execute("INSERT INTO inspections VALUES(?,?,?,?,?)", data)
     conn.commit()
     conn.close()
