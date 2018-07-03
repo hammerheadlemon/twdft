@@ -141,6 +141,8 @@ def initial_db_setup() -> None:
     if db_is_new:
         with sqlite3.connect(db_path) as conn:
             c = conn.cursor()
+
+            # first we create a site object
             c.execute(
                 """
                             CREATE TABLE site(
@@ -180,6 +182,46 @@ def initial_db_setup() -> None:
                             )
                          """
             )
+            conn.commit()
+
+            # next we want an inspection table
+            c.execute(
+                """
+                CREATE TABLE inspection(
+                    id INTEGER PRIMARY KEY,
+                    site INTEGER,
+                    date TEXT,
+                    time TEXT,
+                    FOREIGN KEY(site) REFERENCES site(id)
+                )
+                """
+            )
+            conn.commit()
+
+            # next we want an inspector table
+            c.execute(
+                """
+                CREATE TABLE inspector(
+                    id INTEGER PRIMARY KEY,
+                    first_name TEXT,
+                    last_name TEXT
+                )
+                """
+            )
+            conn.commit()
+
+            # a table that links inspectors with inspections
+            c.execute(
+                """
+                CREATE TABLE inspector_inspections(
+                inspector INTEGER,
+                inspection INTEGER,
+                FOREIGN KEY (inspector) REFERENCES inspector(id),
+                FOREIGN KEY (inspection) REFERENCES inspection(id)
+                )
+                """
+            )
+            conn.commit()
 
             for site in map(Site._make, csv.reader(open(csv_path, "r"))):
                 c.execute(

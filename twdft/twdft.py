@@ -60,18 +60,20 @@ def cli(config, verbose):
     "--sortkey",
     default="along",
     help="Column on which to sort the table",
-    type=click.Choice(
-        ["freq_target", "along", "days_since", "last_inspection"]))
+    type=click.Choice(["freq_target", "along", "days_since", "last_inspection"]),
+)
 @click.option(
     "--limit",
     default=None,
     help="Limit table to certain number of rows",
-    type=click.INT)
+    type=click.INT,
+)
 @click.option(
     "--filter",
     default=None,
     help="Limit sites to a string - not fuzzy or fancy",
-    type=click.STRING)
+    type=click.STRING,
+)
 @pass_config
 def inspection_rate(config, db_file, sortkey, limit, filter):
     """
@@ -80,10 +82,21 @@ def inspection_rate(config, db_file, sortkey, limit, filter):
     # TODO Refactor the baws out of this
     d = get_inspection_periods_all_sites(db_file)
     data = clean_inspection_freq_data(d, sortkey, limit, filter)[1]
-    print(Fore.CYAN + Style.BRIGHT +
-          "{:<63}{:<1}{:^17}{:<1}{:^15}{:<1}{:^15}{:<1}{:^9}".format(
-              'Site', '|', 'Last Inspect.', '|', 'Freq Target', '|',
-              'Days Since', '|', 'Along'))
+    print(
+        Fore.CYAN
+        + Style.BRIGHT
+        + "{:<63}{:<1}{:^17}{:<1}{:^15}{:<1}{:^15}{:<1}{:^9}".format(
+            "Site",
+            "|",
+            "Last Inspect.",
+            "|",
+            "Freq Target",
+            "|",
+            "Days Since",
+            "|",
+            "Along",
+        )
+    )
     print("{:-<121}".format(""))
     for item in data:
         if item[4] > 100:
@@ -102,8 +115,9 @@ def inspection_rate(config, db_file, sortkey, limit, filter):
         print(TERMCOL + "{:^9}".format(item[4]))
         print(Style.RESET_ALL, end="")
     if limit:
-        print(Back.CYAN + Fore.BLACK +
-              f"Limited to: {limit} rows | Sorted by: {sortkey}")
+        print(
+            Back.CYAN + Fore.BLACK + f"Limited to: {limit} rows | Sorted by: {sortkey}"
+        )
     else:
         print(Back.CYAN + Fore.BLACK + f"All data | Sorted by: {sortkey}")
 
@@ -125,8 +139,8 @@ def comment(config, task_id, comment):
     if config.verbose:
         c = CardComment(task_id, comment)
         click.echo(
-            click.style(
-                f"Added comment: {comment} to {c.card_file}", fg='yellow'))
+            click.style(f"Added comment: {comment} to {c.card_file}", fg="yellow")
+        )
         c.write_to_card()
     else:
         c = CardComment(task_id, comment)
@@ -166,14 +180,15 @@ def edit(config, task_number, inspectionstatus):
         click.echo("That task ID does not exist. Sorry")
         return
     if inspectionstatus:
-        task['inspection_status'] = inspectionstatus
+        task["inspection_status"] = inspectionstatus
         task.save()
         if config.verbose:
             click.echo(
                 click.style(
-                    f"Changed inspection_status of {task} to "
-                    f"{inspectionstatus}",
-                    fg="yellow"))
+                    f"Changed inspection_status of {task} to " f"{inspectionstatus}",
+                    fg="yellow",
+                )
+            )
 
 
 @cli.command()
@@ -186,7 +201,7 @@ def delete(config, task_number):
     """
     target = get_card_file(task_number)[0]
     task = get_card_file(task_number)[1]
-    with open(target, 'r', encoding="utf-8") as f:
+    with open(target, "r", encoding="utf-8") as f:
         d = f.read()
         task.add_annotation(d)
         task.save()
@@ -209,53 +224,84 @@ def pdf(config, task_number, destination_directory):
     except Task.DoesNotExist:
         click.echo("That task ID does not exist. Sorry.")
         sys.exit(1)
-    card_path = task['card_path']
-    clean_name = clean_site_name_for_path("_".join(
-        [task['description'], task['inspection_date']]))
+    card_path = task["card_path"]
+    clean_name = clean_site_name_for_path(
+        "_".join([task["description"], task["inspection_date"]])
+    )
     subprocess.run(
-        f'pandoc {card_path} -f markdown -t html5 -o {destination_directory}/{clean_name}.pdf',
-        shell=True)
+        f"pandoc {card_path} -f markdown -t html5 -o {destination_directory}/{clean_name}.pdf",
+        shell=True,
+    )
 
+
+@cli.command()
+@click.argument("type", type=click.Choice(["inspection", "proposed", "dn"]))
+@click.option(
+    "--inspectiondate",
+    default="today",
+    help="Date of inspection - natural language is fine. Defaults to 'today'.",
+)
+@click.option(
+    "--inspectiontime", default="10am", help="Time of inspection - defaults to '10am'"
+)
+@click.option("--opencard", default=False, is_flag=True)
+@pass_config
+def new(config, type, inspectiondate, inspectiontime, opencard):
+    """Create a new something. Options are limited.
+
+    Possible options are: inspection, proposed_inspection?, dn?
+
+    TODO instead of creating the inspection type directly in taskwarrior,
+    we want to create a new record in the database, therefore we need
+    the requisite tables setting up for that. From that, we use THAT
+    data to construct the taskwarrior item, maybe having a --mine option
+    flag that will do that, allowing me to add inspections for other
+    inspectors. These inspections are then concrete and have happened.
+    These inspections become the record of what was done. They would need to
+    be fully editable so that retrospective changes can be made. We have an
+    edit command below that we can adapt.
+
+    A proposed inspection could just have a 'proposed' flag set and then
+    unset when it comes scheduled.
+    """
 
 @cli.command()
 @click.argument("port_facility", type=click.STRING)
 @click.option(
     "--inspectiondate",
     default="today",
-    help="Date of inspection - natural language is fine. Defaults to 'today'.")
+    help="Date of inspection - natural language is fine. Defaults to 'today'.",
+)
 @click.option(
-    "--inspectiontime",
-    default="10am",
-    help="Time of inspection - defaults to '10am'")
+    "--inspectiontime", default="10am", help="Time of inspection - defaults to '10am'"
+)
 @click.option("--opencard", default=False, is_flag=True)
 @pass_config
-def create_inspection(config, port_facility, inspectiondate, inspectiontime,
-                      opencard):
+def create_inspection(config, port_facility, inspectiondate, inspectiontime, opencard):
     """
     Create an inspection at a PORT_FACILITY.
     """
     date = clean_date(inspectiondate)
     if config.verbose:
-        click.echo(click.style(f"TASKRC is set to {TWDFTRC}", fg='yellow'))
+        click.echo(click.style(f"TASKRC is set to {TWDFTRC}", fg="yellow"))
+        click.echo(click.style(f"TASKDATA is set to {TWDFT_DATA_DIR}", fg="yellow"))
         click.echo(
-            click.style(f"TASKDATA is set to {TWDFT_DATA_DIR}", fg='yellow'))
-        click.echo(
-            click.style(
-                f'Setting task description to "{port_facility}"', fg='green'))
-        click.echo(
-            click.style(
-                f'Setting task inspection_date to "{date}"', fg='green'))
+            click.style(f'Setting task description to "{port_facility}"', fg="green")
+        )
+        click.echo(click.style(f'Setting task inspection_date to "{date}"', fg="green"))
         click.echo(
             click.style(
-                f'Setting task inspection_time to "{inspectiontime}"',
-                fg='green'))
+                f'Setting task inspection_time to "{inspectiontime}"', fg="green"
+            )
+        )
         create_task(
             description=port_facility.strip(),
             inspection_date=date,
             inspection_time=inspectiontime,
             inspection_status="forwardlook",
             open_card=opencard,
-            verbose=True)
+            verbose=True,
+        )
     create_task(
         description=port_facility.strip(),
         inspection_date=date,
