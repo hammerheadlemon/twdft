@@ -13,5 +13,4 @@ def test_initial_set_up():
     inspector_name = "Bob"
     subprocess.run(f"sqlite3 -line {db_path} 'INSERT INTO inspectors (first_name) VALUES=({inspector_name})';", shell=True)
     output = subprocess.run("sqlite3 db_path 'SELECT * FROM inspectors;'", stdout=subprocess.PIPE, shell=True)
-    import pdb; pdb.set_trace()  # XXX BREAKPOINT
     assert "Bob" in output
