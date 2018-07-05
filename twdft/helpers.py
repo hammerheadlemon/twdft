@@ -37,6 +37,7 @@ def clean_date(date) -> Union[datetime.date, datetime.datetime]:
     return parsed_obj
 
 
+
 def create_task(**kwargs):
     tw = TaskWarrior(data_location=(TWDFT_DATA_DIR), taskrc_location=TWDFTRC)
 

@@ -12,6 +12,7 @@ from .helpers import clean_date
 from .helpers import clean_site_name_for_path
 from .helpers import create_task
 from .database import get_inspection_periods_all_sites
+from .database import create_db_entry
 from .database import clean_inspection_freq_data
 from .database import days_since
 
@@ -62,9 +63,10 @@ def cli(config, verbose):
 @cli.group()
 def new():
     """Create a new something. Options are limited.
-
     Possible options are: inspection, proposed_inspection?, dn?
+    """
 
+"""
     TODO instead of creating the inspection type directly in taskwarrior,
     we want to create a new record in the database, therefore we need
     the requisite tables setting up for that. From that, we use THAT
@@ -77,8 +79,7 @@ def new():
 
     A proposed inspection could just have a 'proposed' flag set and then
     unset when it comes scheduled.
-    """
-
+"""
 
 @new.command()
 @click.argument("site", type=click.STRING)
@@ -96,8 +97,14 @@ def new():
     is_flag=True,
     help="Immidiately opens the 'card' for the inspection in vim",
 )
+@click.option(
+    "--mine",
+    default=False,
+    is_flag=True,
+    help="The inspection will be added as a Taskwarrior task aswell as to the database."
+)
 @pass_config
-def inspection(config, site, inspectiondate, inspectiontime, opencard):
+def inspection(config, site, inspectiondate, inspectiontime, opencard, mine):
     """
     Create an inspection at a PORT_FACILITY.
     """
@@ -114,21 +121,37 @@ def inspection(config, site, inspectiondate, inspectiontime, opencard):
                 f'Setting task inspection_time to "{inspectiontime}"', fg="green"
             )
         )
+        # first, create the inspection in the db
+        create_db_entry(
+            site=site.strip(),
+            inspection_date=date.isoformat(),
+            inspection_time=inspectiontime,
+            inspection_status="forwardlook",
+        )
+        if mine:
+            create_task(
+                description=site.strip(),
+                inspection_date=date,
+                inspection_time=inspectiontime,
+                inspection_status="forwardlook",
+                open_card=opencard,
+                verbose=True,
+            )
+    # first, create the inspection in the db
+    create_db_entry(
+        site=site.strip(),
+        inspection_date=date.isoformat(),
+        inspection_time=inspectiontime,
+        inspection_status="forwardlook",
+    )
+    if mine:
         create_task(
             description=site.strip(),
             inspection_date=date,
             inspection_time=inspectiontime,
             inspection_status="forwardlook",
             open_card=opencard,
-            verbose=True,
         )
-    create_task(
-        description=site.strip(),
-        inspection_date=date,
-        inspection_time=inspectiontime,
-        inspection_status="forwardlook",
-        open_card=opencard,
-    )
 
 
 @cli.command()

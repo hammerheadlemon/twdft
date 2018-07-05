@@ -8,6 +8,37 @@ from typing import List, Any, Union, NamedTuple
 from .env import TWDFT_DATA_DIR
 
 
+def conv_site_name_to_id(site: str) -> str:
+    db_filename = "twdft.db"
+    db_path = os.path.join(TWDFT_DATA_DIR, db_filename)
+    with sqlite3.connect(db_path) as conn:
+        c = conn.cursor()
+        return c.execute(f"SELECT id FROM site WHERE name={site}")
+
+
+def create_db_entry(
+    site: str,
+    inspection_date: str,
+    inspection_time: str,
+    inspection_status: str,
+) -> None:
+    """Create an inspection object in the database."""
+    db_filename = "twdft.db"
+    db_path = os.path.join(TWDFT_DATA_DIR, db_filename)
+    with sqlite3.connect(db_path) as conn:
+        c = conn.cursor()
+        site_id = c.execute(f'SELECT id FROM site WHERE name="{site}"').fetchone()[0]
+        data = (site_id, inspection_date, inspection_status, inspection_time)
+        c.execute(
+            f"""INSERT INTO inspection(
+                        site,
+                        date,
+                        status,
+                        time) VALUES (?,?,?,?)""",
+            data,
+        )
+
+
 class Site(NamedTuple):
     id: int
     name: str
@@ -137,6 +168,7 @@ def initial_db_setup() -> None:
     csv_filename = "sites.csv"
     csv_path = os.path.join(TWDFT_DATA_DIR, csv_filename)
     db_is_new = not os.path.exists(db_path)
+    sites_csv = os.path.join(TWDFT_DATA_DIR, csv_filename)
 
     if db_is_new:
         with sqlite3.connect(db_path) as conn:
@@ -185,12 +217,14 @@ def initial_db_setup() -> None:
             conn.commit()
 
             # next we want an inspection table
+
             c.execute(
                 """
                 CREATE TABLE inspection(
                     id INTEGER PRIMARY KEY,
                     site INTEGER,
                     date TEXT,
+                    status TEXT,
                     time TEXT,
                     FOREIGN KEY(site) REFERENCES site(id)
                 )
@@ -300,48 +334,6 @@ def initial_db_setup() -> None:
                     )
                 except sqlite3.IntegrityError:
                     print("That hasnae worked", site.inspection_due)
-
-
-def import_csv_to_db(csv_file, db_name):
-    db_file = os.path.join(TWDFT_DATA_DIR, db_name)
-    sites_csv = os.path.join(TWDFT_DATA_DIR, csv_file)
-
-    conn = sqlite3.connect(db_file)
-
-    c = conn.cursor()
-
-    c.execute(
-        """
-              DROP TABLE IF EXISTS inspections;
-              """
-    )
-
-    c.execute(
-        """
-            CREATE TABLE inspections(
-            site_name TEXT,
-            prot_category TEXT,
-            site_category TEXT,
-            frequency_target TEXT,
-            last_inspection TEXT
-              )
-            """
-    )
-
-    with open(sites_csv, "r") as f:
-        csv_reader = csv.DictReader(f)
-
-        for line in csv_reader:
-            data = (
-                line["SiteName"],
-                line["SubCategoryDesc"],
-                line["SiteCategoryDesc"],
-                line["FrequencyTarget"],
-                line["DateOfLastInspection"],
-            )
-            c.execute("INSERT INTO inspections VALUES(?,?,?,?,?)", data)
-    conn.commit()
-    conn.close()
 
 
 def convert_date_str(date_str: str) -> datetime.date:
