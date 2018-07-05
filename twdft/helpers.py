@@ -40,42 +40,49 @@ def clean_date(date) -> Union[datetime.date, datetime.datetime]:
 def create_task(**kwargs):
     tw = TaskWarrior(data_location=(TWDFT_DATA_DIR), taskrc_location=TWDFTRC)
 
-    verbose = kwargs.pop('verbose', False)
-    open_card = kwargs.pop('open_card', False)
+    verbose = kwargs.pop("verbose", False)
+    open_card = kwargs.pop("open_card", False)
 
     test_task = Task(tw, **kwargs)
     test_task.save()
     if open_card:
         card_path = create_card(
-            inspection_name=kwargs['description'],
-            inspection_date=kwargs['inspection_date'],
-            inspection_time=kwargs['inspection_time'],
+            inspection_name=kwargs["description"],
+            inspection_date=kwargs["inspection_date"],
+            inspection_time=kwargs["inspection_time"],
             open_card=True,
-            verbose=verbose)
-        test_task['card_path'] = card_path[0]
-        test_task['inspection_card_uuid'] = card_path[1]
+            verbose=verbose,
+        )
+        test_task["card_path"] = card_path[0]
+        test_task["inspection_card_uuid"] = card_path[1]
         test_task.save()
     else:
         card_path = create_card(
-            inspection_name=kwargs['description'],
-            inspection_date=kwargs['inspection_date'],
-            inspection_time=kwargs['inspection_time'],
+            inspection_name=kwargs["description"],
+            inspection_date=kwargs["inspection_date"],
+            inspection_time=kwargs["inspection_time"],
             open_card=False,
-            verbose=verbose)
-        test_task['card_path'] = card_path[0]
-        test_task['inspection_card_uuid'] = card_path[1]
+            verbose=verbose,
+        )
+        test_task["card_path"] = card_path[0]
+        test_task["inspection_card_uuid"] = card_path[1]
         test_task.save()
 
 
-def create_card(inspection_name: str, inspection_date: str,
-                inspection_time: str, open_card: bool, verbose: bool) -> Tuple[str, str]:
+def create_card(
+    inspection_name: str,
+    inspection_date: str,
+    inspection_time: str,
+    open_card: bool,
+    verbose: bool,
+) -> Tuple[str, str]:
 
     site_data = lookup_site_data(inspection_name)
-    site_notes = site_data.get('SiteNotes', 'No notes available')
-    site_notes = site_notes.replace('\n', '')
+    site_notes = site_data.get("SiteNotes", "No notes available")
+    site_notes = site_notes.replace("\n", "")
 
-
-    template = textwrap.dedent(f"""\
+    template = textwrap.dedent(
+        f"""\
                                ## Inspection at: {inspection_name}
                                ### Region: {site_data.get('TeamDesc', 'UNKNOWN')}
                                ### Site Category: {site_data.get('SiteCategoryDesc')}
@@ -139,17 +146,22 @@ def create_card(inspection_name: str, inspection_date: str,
                                * [ ] - Add a Waiting label to this card and park on Backlog
 
                                ### Comments:
-                               """)
+                               """
+    )
     card_uuid = uuid.uuid4()
     flattened_name = clean_site_name_for_path(inspection_name)
-    card_file = str(os.path.join(CARDS_DIR , f"{flattened_name}_{str(inspection_date)}_{card_uuid}.twdft"))
+    card_file = str(
+        os.path.join(
+            CARDS_DIR, f"{flattened_name}_{str(inspection_date)}_{card_uuid}.twdft"
+        )
+    )
 
     with open(card_file, "wt") as f:
         f.write(template)
     if open_card:
         subprocess.run(f"vim {str(card_file)}", shell=True)
     if verbose:
-        click.echo(click.style(f"Card created at {card_file}", fg='green'))
+        click.echo(click.style(f"Card created at {card_file}", fg="green"))
     return card_file, str(card_uuid)
 
 
@@ -180,7 +192,7 @@ def get_card_file(task_number):
     except Task.DoesNotExist:
         click.echo("That task ID does not exist. Sorry.")
         sys.exit(1)
-    uuid = task['inspection_card_uuid']
+    uuid = task["inspection_card_uuid"]
     for f in os.listdir(CARDS_DIR):
         if uuid in f:
             target = os.path.join(CARDS_DIR, f)
@@ -197,7 +209,7 @@ def task_card_path(id) -> str:
     except Task.DoesNotExist:
         click.echo("That task ID does not exist. Sorry.")
         sys.exit(1)
-    card_path = task['card_path']
+    card_path = task["card_path"]
     return card_path
 
 
@@ -210,6 +222,7 @@ class CardComment:
     comment.write_to_card(verbose=True)
 
     """
+
     def __init__(self, task_id, comment):
         self._comment = comment
         self._task_id = task_id
@@ -240,17 +253,15 @@ class CardComment:
         return f"<CardComment for  - task {self._task_id}: {self._comment}>"
 
 
-
 def get_inspection_status_choices() -> Union[List[str], List]:
     """Find inspection_status.values uda line from config."""
     regex = r"^uda\.inspection_status\.values=(.+$)"
-    with open(TWDFTRC, 'r') as f:
+    with open(TWDFTRC, "r") as f:
         for line in f.readlines():
             m = re.match(regex, line)
             if m:
-                return m.group(1).split(',')
+                return m.group(1).split(",")
     return []
-
 
 
 def completion_facility_names() -> str:
@@ -259,20 +270,23 @@ def completion_facility_names() -> str:
     names for use in fish completion.
     """
     sites_list = []
-    with open(os.path.join(str(TWDFT_DATA_DIR), SITE_DATA_FILE), 'r') as f:
+    with open(os.path.join(str(TWDFT_DATA_DIR), SITE_DATA_FILE), "r") as f:
         csv_reader = csv.DictReader(f)
         for line in csv_reader:
-            if line['SiteTypeDesc'] == "Port":
-                st = line['SiteName'].strip()
+            if line["SiteTypeDesc"] == "Port":
+                st = line["SiteName"].strip()
                 sites_list.append(f"{st}\n")
 
     return " ".join(sites_list)
 
 
-def lookup_site_data(site) ->Dict[str, str]: # type: ignore
+def lookup_site_data(site) -> Dict[str, str]:  # type: ignore
     """Lookup details of site from site_dump.csv."""
-    with open(os.path.join(str(TWDFT_DATA_DIR), SITE_DATA_FILE), 'r') as f:
+    with open(os.path.join(str(TWDFT_DATA_DIR), SITE_DATA_FILE), "r") as f:
         csv_reader = csv.DictReader(f)
         for line in csv_reader:
-            if line['SiteTypeDesc'].strip() == "Port" and line['SiteName'].strip() == site:
+            if (
+                line["SiteTypeDesc"].strip() == "Port"
+                and line["SiteName"].strip() == site
+            ):
                 return line
