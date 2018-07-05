@@ -11,6 +11,16 @@ def test_initial_set_up():
     db_path = os.path.join(TWDFT_DATA_DIR, db_filename)
 
     inspector_name = "Bob"
-    subprocess.run(f"sqlite3 -line {db_path} 'INSERT INTO inspectors (first_name) VALUES=({inspector_name})';", shell=True)
-    output = subprocess.run("sqlite3 db_path 'SELECT * FROM inspectors;'", stdout=subprocess.PIPE, shell=True)
-    assert "Bob" in output
+    subprocess.run(
+        f"sqlite3 {db_path} 'INSERT INTO inspector (first_name) VALUES (\"{inspector_name}\")'",
+        check=True,
+        shell=True,
+    )
+    output = subprocess.run(
+        f"sqlite3 {db_path} 'SELECT * FROM inspector'",
+        stdout=subprocess.PIPE,
+        encoding="utf-8",
+        check=True,
+        shell=True,
+    )
+    assert "Bob" in output.stdout
