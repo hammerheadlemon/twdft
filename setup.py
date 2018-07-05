@@ -12,6 +12,7 @@ setup(
     ],
     entry_points={
         'console_scripts': [
+            'twdft_complete_site=twdft.twdft:__complete_site',
             'twdft=twdft.twdft:cli'
         ]
     }

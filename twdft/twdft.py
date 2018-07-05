@@ -24,6 +24,11 @@ import click
 init(autoreset=True)
 
 
+def __complete_site():
+    """Implemented to provide list of facility names to fish completion"""
+    click.echo(completion_facility_names())
+
+
 class Config:
     def __init__(self):
         self.verbose = False
@@ -52,6 +57,78 @@ def cli(config, verbose):
         set -e TWDFT_DATA_DIR
     """
     config.verbose = verbose
+
+
+@cli.group()
+def new():
+    """Create a new something. Options are limited.
+
+    Possible options are: inspection, proposed_inspection?, dn?
+
+    TODO instead of creating the inspection type directly in taskwarrior,
+    we want to create a new record in the database, therefore we need
+    the requisite tables setting up for that. From that, we use THAT
+    data to construct the taskwarrior item, maybe having a --mine option
+    flag that will do that, allowing me to add inspections for other
+    inspectors. These inspections are then concrete and have happened.
+    These inspections become the record of what was done. They would need to
+    be fully editable so that retrospective changes can be made. We have an
+    edit command below that we can adapt.
+
+    A proposed inspection could just have a 'proposed' flag set and then
+    unset when it comes scheduled.
+    """
+
+
+@new.command()
+@click.argument("site", type=click.STRING)
+@click.option(
+    "--inspectiondate",
+    default="today",
+    help="Date of inspection - natural language is fine. Defaults to 'today'.",
+)
+@click.option(
+    "--inspectiontime", default="10am", help="Time of inspection - defaults to '10am'"
+)
+@click.option(
+    "--opencard",
+    default=False,
+    is_flag=True,
+    help="Immidiately opens the 'card' for the inspection in vim",
+)
+@pass_config
+def inspection(config, site, inspectiondate, inspectiontime, opencard):
+    """
+    Create an inspection at a PORT_FACILITY.
+    """
+    date = clean_date(inspectiondate)
+    if config.verbose:
+        click.echo(click.style(f"TASKRC is set to {TWDFTRC}", fg="yellow"))
+        click.echo(click.style(f"TASKDATA is set to {TWDFT_DATA_DIR}", fg="yellow"))
+        click.echo(
+            click.style(f'Setting task description to "{port_facility}"', fg="green")
+        )
+        click.echo(click.style(f'Setting task inspection_date to "{date}"', fg="green"))
+        click.echo(
+            click.style(
+                f'Setting task inspection_time to "{inspectiontime}"', fg="green"
+            )
+        )
+        create_task(
+            description=site.strip(),
+            inspection_date=date,
+            inspection_time=inspectiontime,
+            inspection_status="forwardlook",
+            open_card=opencard,
+            verbose=True,
+        )
+    create_task(
+        description=site.strip(),
+        inspection_date=date,
+        inspection_time=inspectiontime,
+        inspection_status="forwardlook",
+        open_card=opencard,
+    )
 
 
 @cli.command()
@@ -147,11 +224,6 @@ def comment(config, task_id, comment):
         c.write_to_card()
 
 
-@cli.command()
-def __complete_site():
-    """Implemented to provide list of facility names to fish completion"""
-    click.echo(completion_facility_names())
-
 
 @cli.command()
 @pass_config
@@ -231,81 +303,4 @@ def pdf(config, task_number, destination_directory):
     subprocess.run(
         f"pandoc {card_path} -f markdown -t html5 -o {destination_directory}/{clean_name}.pdf",
         shell=True,
-    )
-
-
-@cli.command()
-@click.argument("type", type=click.Choice(["inspection", "proposed", "dn"]))
-@click.option(
-    "--inspectiondate",
-    default="today",
-    help="Date of inspection - natural language is fine. Defaults to 'today'.",
-)
-@click.option(
-    "--inspectiontime", default="10am", help="Time of inspection - defaults to '10am'"
-)
-@click.option("--opencard", default=False, is_flag=True)
-@pass_config
-def new(config, type, inspectiondate, inspectiontime, opencard):
-    """Create a new something. Options are limited.
-
-    Possible options are: inspection, proposed_inspection?, dn?
-
-    TODO instead of creating the inspection type directly in taskwarrior,
-    we want to create a new record in the database, therefore we need
-    the requisite tables setting up for that. From that, we use THAT
-    data to construct the taskwarrior item, maybe having a --mine option
-    flag that will do that, allowing me to add inspections for other
-    inspectors. These inspections are then concrete and have happened.
-    These inspections become the record of what was done. They would need to
-    be fully editable so that retrospective changes can be made. We have an
-    edit command below that we can adapt.
-
-    A proposed inspection could just have a 'proposed' flag set and then
-    unset when it comes scheduled.
-    """
-
-@cli.command()
-@click.argument("port_facility", type=click.STRING)
-@click.option(
-    "--inspectiondate",
-    default="today",
-    help="Date of inspection - natural language is fine. Defaults to 'today'.",
-)
-@click.option(
-    "--inspectiontime", default="10am", help="Time of inspection - defaults to '10am'"
-)
-@click.option("--opencard", default=False, is_flag=True)
-@pass_config
-def create_inspection(config, port_facility, inspectiondate, inspectiontime, opencard):
-    """
-    Create an inspection at a PORT_FACILITY.
-    """
-    date = clean_date(inspectiondate)
-    if config.verbose:
-        click.echo(click.style(f"TASKRC is set to {TWDFTRC}", fg="yellow"))
-        click.echo(click.style(f"TASKDATA is set to {TWDFT_DATA_DIR}", fg="yellow"))
-        click.echo(
-            click.style(f'Setting task description to "{port_facility}"', fg="green")
-        )
-        click.echo(click.style(f'Setting task inspection_date to "{date}"', fg="green"))
-        click.echo(
-            click.style(
-                f'Setting task inspection_time to "{inspectiontime}"', fg="green"
-            )
-        )
-        create_task(
-            description=port_facility.strip(),
-            inspection_date=date,
-            inspection_time=inspectiontime,
-            inspection_status="forwardlook",
-            open_card=opencard,
-            verbose=True,
-        )
-    create_task(
-        description=port_facility.strip(),
-        inspection_date=date,
-        inspection_time=inspectiontime,
-        inspection_status="forwardlook",
-        open_card=opencard,
     )
