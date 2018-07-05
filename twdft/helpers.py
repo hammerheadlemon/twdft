@@ -24,6 +24,10 @@ def clean_date(date) -> Union[datetime.date, datetime.datetime]:
     if parse_status == 1:
         # it is a date object
         parsed_obj = datetime.date(*time_struct[:3])
+    elif parse_status == 2:
+        # it is a time
+        click.echo(f"Cannot parse {date}. Give me something reasonable, buddy!")
+        sys.exit(1)
     elif parse_status == 3:
         # it is a datetime
         parsed_obj = datetime.datetime(*time_struct[:6])
