@@ -66,6 +66,7 @@ def new():
     Possible options are: inspection, proposed_inspection?, dn?
     """
 
+
 """
     TODO instead of creating the inspection type directly in taskwarrior,
     we want to create a new record in the database, therefore we need
@@ -81,30 +82,38 @@ def new():
     unset when it comes scheduled.
 """
 
+
 @new.command()
 @click.argument("site", type=click.STRING)
 @click.option(
     "--inspectiondate",
+    "-d",
     default="today",
     help="Date of inspection - natural language is fine. Defaults to 'today'.",
 )
 @click.option(
-    "--inspectiontime", default="10am", help="Time of inspection - defaults to '10am'"
+    "--inspectiontime",
+    "-t",
+    default="10am",
+    help="Time of inspection - defaults to '10am'",
 )
 @click.option(
     "--opencard",
+    "-o",
     default=False,
     is_flag=True,
     help="Immidiately opens the 'card' for the inspection in vim",
 )
 @click.option(
     "--mine",
+    "-m",
     default=False,
     is_flag=True,
-    help="The inspection will be added as a Taskwarrior task aswell as to the database."
+    help="The inspection will be added as a Taskwarrior task aswell as to the database.",
 )
+@click.option("--inspector", "-i", multiple=True)
 @pass_config
-def inspection(config, site, inspectiondate, inspectiontime, opencard, mine):
+def inspection(config, site, inspectiondate, inspectiontime, opencard, mine, inspector):
     """
     Create an inspection at a PORT_FACILITY.
     """
@@ -112,10 +121,9 @@ def inspection(config, site, inspectiondate, inspectiontime, opencard, mine):
     if config.verbose:
         click.echo(click.style(f"TASKRC is set to {TWDFTRC}", fg="yellow"))
         click.echo(click.style(f"TASKDATA is set to {TWDFT_DATA_DIR}", fg="yellow"))
-        click.echo(
-            click.style(f'Setting task description to "{port_facility}"', fg="green")
-        )
+        click.echo(click.style(f'Setting task description to "{site}"', fg="green"))
         click.echo(click.style(f'Setting task inspection_date to "{date}"', fg="green"))
+        click.echo(click.style(f'Setting inspectors to {inspector}', fg="green"))
         click.echo(
             click.style(
                 f'Setting task inspection_time to "{inspectiontime}"', fg="green"
@@ -127,6 +135,7 @@ def inspection(config, site, inspectiondate, inspectiontime, opencard, mine):
             inspection_date=date.isoformat(),
             inspection_time=inspectiontime,
             inspection_status="forwardlook",
+            inspectors=inspector,
         )
         if mine:
             create_task(
@@ -134,6 +143,7 @@ def inspection(config, site, inspectiondate, inspectiontime, opencard, mine):
                 inspection_date=date,
                 inspection_time=inspectiontime,
                 inspection_status="forwardlook",
+                inspectors=inspector,
                 open_card=opencard,
                 verbose=True,
             )
@@ -143,6 +153,7 @@ def inspection(config, site, inspectiondate, inspectiontime, opencard, mine):
         inspection_date=date.isoformat(),
         inspection_time=inspectiontime,
         inspection_status="forwardlook",
+        inspectors=inspector,
     )
     if mine:
         create_task(
@@ -151,6 +162,7 @@ def inspection(config, site, inspectiondate, inspectiontime, opencard, mine):
             inspection_time=inspectiontime,
             inspection_status="forwardlook",
             open_card=opencard,
+            inspectors=inspector,
         )
 
 
@@ -245,7 +257,6 @@ def comment(config, task_id, comment):
     else:
         c = CardComment(task_id, comment)
         c.write_to_card()
-
 
 
 @cli.command()

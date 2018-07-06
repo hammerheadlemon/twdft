@@ -43,6 +43,7 @@ def create_task(**kwargs):
 
     verbose = kwargs.pop("verbose", False)
     open_card = kwargs.pop("open_card", False)
+    inspectors = kwargs.pop("inspectors", False)
 
     test_task = Task(tw, **kwargs)
     test_task.save()
@@ -52,6 +53,7 @@ def create_task(**kwargs):
             inspection_date=kwargs["inspection_date"],
             inspection_time=kwargs["inspection_time"],
             open_card=True,
+            inspectors=inspectors,
             verbose=verbose,
         )
         test_task["card_path"] = card_path[0]
@@ -63,6 +65,7 @@ def create_task(**kwargs):
             inspection_date=kwargs["inspection_date"],
             inspection_time=kwargs["inspection_time"],
             open_card=False,
+            inspectors=inspectors,
             verbose=verbose,
         )
         test_task["card_path"] = card_path[0]
@@ -74,6 +77,7 @@ def create_card(
     inspection_name: str,
     inspection_date: str,
     inspection_time: str,
+    inspectors: Tuple[str],
     open_card: bool,
     verbose: bool,
 ) -> Tuple[str, str]:
@@ -92,6 +96,7 @@ def create_card(
                                ### Date: {inspection_date}
                                ### Time: {inspection_time}
                                ### Status: forwardlook
+                               ### Inspectors: {inspectors}
                                ### Last Inspection: {site_data.get('DateOfLastInspection', 'UNKNOWN')}
 
                                ### Site Notes:

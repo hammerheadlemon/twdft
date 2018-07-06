@@ -27,3 +27,10 @@ if not os.path.exists(CARDS_DIR):
     os.makedirs(CARDS_DIR)
 
 SITE_DATA_FILE = 'site_address.csv'
+
+INSPECTORS = [
+    "Matt Lemon",
+    "Graham East",
+    "Tim Light",
+    "Simon Corkill",
+]

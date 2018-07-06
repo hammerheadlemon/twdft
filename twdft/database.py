@@ -3,9 +3,9 @@ import datetime
 import sqlite3
 import os
 
-from typing import List, Any, Union, NamedTuple
+from typing import List, Any, Union, NamedTuple, Tuple
 
-from .env import TWDFT_DATA_DIR
+from .env import TWDFT_DATA_DIR, INSPECTORS
 
 
 def conv_site_name_to_id(site: str) -> str:
@@ -21,6 +21,7 @@ def create_db_entry(
     inspection_date: str,
     inspection_time: str,
     inspection_status: str,
+    inspectors: Tuple[str],
 ) -> None:
     """Create an inspection object in the database."""
     db_filename = "twdft.db"
@@ -37,6 +38,16 @@ def create_db_entry(
                         time) VALUES (?,?,?,?)""",
             data,
         )
+        insp_id = c.lastrowid
+        inspector_ids = [
+            c.execute("SELECT id FROM inspector WHERE first_name=?", (x,)).fetchone()[0]
+            for x in inspectors
+        ]
+        for iid in inspector_ids:
+            c.execute(
+                "INSERT INTO inspector_inspections(inspector, inspection) VALUES (?,?)",
+                (iid, insp_id),
+            )
 
 
 class Site(NamedTuple):
@@ -243,6 +254,14 @@ def initial_db_setup() -> None:
                 """
             )
             conn.commit()
+
+            for i in INSPECTORS:
+                first = i.split(" ")[0]
+                last = i.split(" ")[1]
+                c.execute(
+                    "INSERT INTO inspector(first_name, last_name) VALUES (?,?)",
+                    (first, last),
+                )
 
             # a table that links inspectors with inspections
             c.execute(
