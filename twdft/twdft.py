@@ -214,14 +214,19 @@ def dropdb():
     help="Limit sites to a string - not fuzzy or fancy",
     type=click.STRING,
 )
+@click.option(
+    "--team",
+    type=click.Choice(["East", "West"]),
+    help="Limite sites to a regional team",
+)
 @pass_config
-def rate(config, sortkey, limit, filter):
+def rate(config, sortkey, limit, filter, team):
     """
     Display data about inspection - last dates, frequency, etc.
     """
     db_file = DB_FILE
     # TODO Refactor the baws out of this
-    d = get_inspection_periods_all_sites(db_file)
+    d = get_inspection_periods_all_sites(db_file, team)
     data = clean_inspection_freq_data(d, sortkey, limit, filter)[1]
     print(
         Fore.CYAN

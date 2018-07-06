@@ -92,7 +92,7 @@ def clean_inspection_freq_data(
 ) -> tuple:
     """
     takes a list of (site_name, last_inspection, frequence_target)
-    tuples and concerts t[1] into a date and t[2] into an integer.
+    tuples and converts t[x] into a date and t[2] into an integer.
     """
     SORT_KEYS = {"last_inspection": 1, "freq_target": 2, "days_since": 3, "along": 4}
 
@@ -134,7 +134,7 @@ def clean_inspection_freq_data(
     return errors, out
 
 
-def get_inspection_periods_all_sites(db_name) -> List[Any]:
+def get_inspection_periods_all_sites(db_name, team: str) -> List[Any]:
     """
     Provide data for how a single site fairs in terms
     of inspection frequency.
@@ -145,7 +145,11 @@ def get_inspection_periods_all_sites(db_name) -> List[Any]:
     except FileNotFoundError:
         raise
     c = conn.cursor()
-    c.execute("SELECT name, last_inspection, freq_target FROM site;")
+    if not team:
+        c.execute("SELECT name, last_inspection, freq_target FROM site;")
+    else:
+        team = " ".join(["Maritime", team])
+        c.execute("SELECT name, last_inspection, freq_target FROM site WHERE team=?", (team,))
     result = c.fetchall()
     conn.close()
     return result
