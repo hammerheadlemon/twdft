@@ -144,7 +144,7 @@ def get_inspection_periods_all_sites(db_name) -> List[Any]:
     except FileNotFoundError:
         raise
     c = conn.cursor()
-    c.execute("SELECT site_name, last_inspection, frequency_target FROM inspections;")
+    c.execute("SELECT name, last_inspection, freq_target FROM site;")
     result = c.fetchall()
     conn.close()
     return result
