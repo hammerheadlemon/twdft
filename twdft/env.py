@@ -28,9 +28,12 @@ if not os.path.exists(CARDS_DIR):
 
 SITE_DATA_FILE = 'site_address.csv'
 
+DB_FILE = os.path.join(TWDFT_DATA_DIR, 'twdft.db')
+
 INSPECTORS = [
     "Matt Lemon",
     "Graham East",
     "Tim Light",
     "Simon Corkill",
+    "Paul Nagle",
 ]

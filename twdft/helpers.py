@@ -8,13 +8,14 @@ import os
 import datetime
 import click
 import fileinput
+import sqlite3
 
 import parsedatetime
 
 from typing import List, Union, Dict, Tuple
 from tasklib import TaskWarrior, Task
 
-from .env import TWDFTRC, CARDS_DIR, TWDFT_DATA_DIR, SITE_DATA_FILE
+from .env import TWDFTRC, CARDS_DIR, TWDFT_DATA_DIR, SITE_DATA_FILE, DB_FILE
 
 
 def clean_date(date) -> Union[datetime.date, datetime.datetime]:
@@ -83,21 +84,21 @@ def create_card(
 ) -> Tuple[str, str]:
 
     site_data = lookup_site_data(inspection_name)
-    site_notes = site_data.get("SiteNotes", "No notes available")
+    site_notes = site_data[13]
     site_notes = site_notes.replace("\n", "")
 
     template = textwrap.dedent(
         f"""\
                                ## Inspection at: {inspection_name}
-                               ### Region: {site_data.get('TeamDesc', 'UNKNOWN')}
-                               ### Site Category: {site_data.get('SiteCategoryDesc')}
-                               ### PFSO: {site_data.get('PFSO', 'Unknown PFSO')}
-                               ### Protection Category: {site_data.get('SubCategoryDesc', 'Unknown')}
+                               ### Region: {site_data[2]}
+                               ### Site Category: {site_data[10]}
+                               ### PFSO: {site_data[19]}
+                               ### Protection Category: {site_data[3]}
                                ### Date: {inspection_date}
                                ### Time: {inspection_time}
                                ### Status: forwardlook
                                ### Inspectors: {inspectors}
-                               ### Last Inspection: {site_data.get('DateOfLastInspection', 'UNKNOWN')}
+                               ### Last Inspection: {site_data[14]}
 
                                ### Site Notes:
 
@@ -105,11 +106,11 @@ def create_card(
 
                                ### Address
 
-                               {site_data.get('Address1', 'UNKNOWN')},
-                               {site_data.get('Address2', 'UNKNOWN')},
-                               {site_data.get('Town', 'UNKNOWN')},
-                               {site_data.get('County', 'UNKNOWN')},
-                               {site_data.get('Postcode', 'UNKNOWN')},
+                               {site_data[4]}
+                               {site_data[5]}
+                               {site_data[6]}
+                               {site_data[7]}
+                               {site_data[8]}
 
                                ### Planning
 
@@ -275,24 +276,26 @@ def completion_facility_names() -> str:
     A function that returns a space-separated string of facility
     names for use in fish completion.
     """
-    sites_list = []
-    with open(os.path.join(str(TWDFT_DATA_DIR), SITE_DATA_FILE), "r") as f:
-        csv_reader = csv.DictReader(f)
-        for line in csv_reader:
-            if line["SiteTypeDesc"] == "Port":
-                st = line["SiteName"].strip()
-                sites_list.append(f"{st}\n")
-
-    return " ".join(sites_list)
+    with sqlite3.connect(os.path.join(TWDFT_DATA_DIR, DB_FILE)) as conn:
+        c = conn.cursor()
+        #sites_list = c.execute("""SELECT name FROM site WHERE site_type="Port" AND team='Maritime East'""").fetchall()
+        sites_list = c.execute("""SELECT name FROM site WHERE site_type='Port'""").fetchall()
+        sts = [f"{x[0].strip()}\n" for x in sites_list]
+    return " ".join(sts)
 
 
 def lookup_site_data(site) -> Dict[str, str]:  # type: ignore
-    """Lookup details of site from site_dump.csv."""
-    with open(os.path.join(str(TWDFT_DATA_DIR), SITE_DATA_FILE), "r") as f:
-        csv_reader = csv.DictReader(f)
-        for line in csv_reader:
-            if (
-                line["SiteTypeDesc"].strip() == "Port"
-                and line["SiteName"].strip() == site
-            ):
-                return line
+    """Lookup details of site from database."""
+    with sqlite3.connect(os.path.join(TWDFT_DATA_DIR, DB_FILE)) as conn:
+        c = conn.cursor()
+        data = c.execute("SELECT * FROM site WHERE site_type='Port' AND name=?", (site,)).fetchone()
+        return data
+
+#   with open(os.path.join(str(TWDFT_DATA_DIR),), "r") as f:
+#       csv_reader = csv.DictReader(f)
+#       for line in csv_reader:
+#           if (
+#               line["SiteTypeDesc"].strip() == "Port"
+#               and line["SiteName"].strip() == site
+#           ):
+#               return line

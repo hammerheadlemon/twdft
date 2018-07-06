@@ -1,4 +1,5 @@
 import csv
+import sys
 import datetime
 import sqlite3
 import os
@@ -51,7 +52,7 @@ def create_db_entry(
 
 
 class Site(NamedTuple):
-    id: int
+    id: str
     name: str
     site_type: str
     sub_category: str
@@ -280,43 +281,9 @@ def initial_db_setup() -> None:
                 try:
                     c.execute(
                         f"""
-                                INSERT INTO site(
-                                    id,
-                                    name,
-                                    site_type,
-                                    sub_category,
-                                    address_1,
-                                    address_2,
-                                    town,
-                                    county,
-                                    country,
-                                    postcode,
-                                    site_category,
-                                    freq_target,
-                                    created,
-                                    notes,
-                                    last_inspection,
-                                    next_inspection,
-                                    pfsp_approval,
-                                    pfsp_expiry,
-                                    unlocode,
-                                    pfso,
-                                    pso,
-                                    pfsa_approval,
-                                    pfsa_expiry,
-                                    team,
-                                    created_by,
-                                    last_updated,
-                                    updated_by,
-                                    afp_loc,
-                                    rdf,
-                                    classification,
-                                    article24,
-                                    psa_approval,
-                                    inspection_due
-                                ) VALUES(?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)""",
+                                INSERT INTO site VALUES(?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)""",
                         (
-                            site.id,
+                            int(site.id.replace(",", "")),
                             site.name,
                             site.site_type,
                             site.sub_category,
@@ -351,7 +318,7 @@ def initial_db_setup() -> None:
                             site.inspection_due,
                         ),
                     )
-                except sqlite3.IntegrityError:
+                except sqlite3.IntegrityError as e:
                     print("That hasnae worked", site.inspection_due)
 
 

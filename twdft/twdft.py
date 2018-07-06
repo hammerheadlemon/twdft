@@ -11,12 +11,13 @@ from .helpers import CardComment
 from .helpers import clean_date
 from .helpers import clean_site_name_for_path
 from .helpers import create_task
+from .database import initial_db_setup
 from .database import get_inspection_periods_all_sites
 from .database import create_db_entry
 from .database import clean_inspection_freq_data
 from .database import days_since
 
-from .env import TWDFTRC, TWDFT_DATA_DIR
+from .env import TWDFTRC, TWDFT_DATA_DIR, DB_FILE
 
 from tasklib import Task, TaskWarrior
 import click
@@ -123,7 +124,7 @@ def inspection(config, site, inspectiondate, inspectiontime, opencard, mine, ins
         click.echo(click.style(f"TASKDATA is set to {TWDFT_DATA_DIR}", fg="yellow"))
         click.echo(click.style(f'Setting task description to "{site}"', fg="green"))
         click.echo(click.style(f'Setting task inspection_date to "{date}"', fg="green"))
-        click.echo(click.style(f'Setting inspectors to {inspector}', fg="green"))
+        click.echo(click.style(f"Setting inspectors to {inspector}", fg="green"))
         click.echo(
             click.style(
                 f'Setting task inspection_time to "{inspectiontime}"', fg="green"
@@ -166,8 +167,35 @@ def inspection(config, site, inspectiondate, inspectiontime, opencard, mine, ins
         )
 
 
+def abort_if_false(ctx, param, value):
+    if not value:
+        ctx.abort()
+
+
 @cli.command()
-@click.argument("db_file", type=click.Path(exists=True))
+@click.option(
+    "--yes",
+    is_flag=True,
+    callback=abort_if_false,
+    expose_value=False,
+    help="Override prompt and drop the database anyway",
+    prompt="Are you sure you want to drop the database?",
+)
+def dropdb():
+    """If there is a twdft.db file in TWDFT_DATA_DIR directory, it is removed and recreated.
+    There must be a sites.csv file present for this. If you do not have a sites.csv file,
+    export the Port and PSA Scheduling Aid report from Mallard, remove the header row,
+    send to Libreoffice and save as 'sites.csv' and save it in TWDFT_DATA_DIR.
+
+    All inspection planning data will be lost but site data will be re-established.
+
+    This command will prompt for you to continue.
+    """
+    initial_db_setup()
+    click.echo("Dropped all tables and recreated using site.csv!")
+
+
+@cli.command()
 @click.option(
     "--sortkey",
     default="along",
@@ -187,10 +215,11 @@ def inspection(config, site, inspectiondate, inspectiontime, opencard, mine, ins
     type=click.STRING,
 )
 @pass_config
-def inspection_rate(config, db_file, sortkey, limit, filter):
+def rate(config, sortkey, limit, filter):
     """
-    Display inspection period data for all sites.
+    Display data about inspection - last dates, frequency, etc.
     """
+    db_file = DB_FILE
     # TODO Refactor the baws out of this
     d = get_inspection_periods_all_sites(db_file)
     data = clean_inspection_freq_data(d, sortkey, limit, filter)[1]
