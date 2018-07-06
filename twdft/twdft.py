@@ -5,6 +5,7 @@ import sys
 from colorama import init, Fore, Style, Back
 
 from .helpers import completion_facility_names
+from .helpers import get_inspection_data
 from .helpers import get_inspection_status_choices as status_choice
 from .helpers import task_card_path, get_card_file
 from .helpers import CardComment
@@ -84,6 +85,23 @@ def new():
 """
 
 
+@cli.group()
+def list():
+    """
+    List things. Options are limited.
+    """
+
+
+@list.command()
+def inspections():
+    """
+    A list of all inspections in the system for planning purposes (i.e. NOT inspections
+    imported from Mallard.
+    """
+    data = get_inspection_data()
+    click.echo(data)
+
+
 @new.command()
 @click.argument("site", type=click.STRING)
 @click.option(
@@ -113,8 +131,23 @@ def new():
     help="The inspection will be added as a Taskwarrior task aswell as to the database.",
 )
 @click.option("--inspector", "-i", multiple=True)
+@click.option(
+    "--inspectionstatus",
+    "-s",
+    type=click.Choice(status_choice()),
+    default="forwardlook",
+)
 @pass_config
-def inspection(config, site, inspectiondate, inspectiontime, opencard, mine, inspector):
+def inspection(
+    config,
+    site,
+    inspectiondate,
+    inspectiontime,
+    opencard,
+    mine,
+    inspector,
+    inspectionstatus,
+):
     """
     Create an inspection at a PORT_FACILITY.
     """
@@ -135,7 +168,7 @@ def inspection(config, site, inspectiondate, inspectiontime, opencard, mine, ins
             site=site.strip(),
             inspection_date=date.isoformat(),
             inspection_time=inspectiontime,
-            inspection_status="forwardlook",
+            inspection_status=inspectionstatus,
             inspectors=inspector,
         )
         if mine:
@@ -143,7 +176,7 @@ def inspection(config, site, inspectiondate, inspectiontime, opencard, mine, ins
                 description=site.strip(),
                 inspection_date=date,
                 inspection_time=inspectiontime,
-                inspection_status="forwardlook",
+                inspection_status=inspectionstatus,
                 inspectors=inspector,
                 open_card=opencard,
                 verbose=True,
@@ -153,7 +186,7 @@ def inspection(config, site, inspectiondate, inspectiontime, opencard, mine, ins
         site=site.strip(),
         inspection_date=date.isoformat(),
         inspection_time=inspectiontime,
-        inspection_status="forwardlook",
+        inspection_status=inspectionstatus,
         inspectors=inspector,
     )
     if mine:
@@ -161,7 +194,7 @@ def inspection(config, site, inspectiondate, inspectiontime, opencard, mine, ins
             description=site.strip(),
             inspection_date=date,
             inspection_time=inspectiontime,
-            inspection_status="forwardlook",
+            inspection_status=inspectionstatus,
             open_card=opencard,
             inspectors=inspector,
         )

@@ -18,6 +18,12 @@ from tasklib import TaskWarrior, Task
 from .env import TWDFTRC, CARDS_DIR, TWDFT_DATA_DIR, SITE_DATA_FILE, DB_FILE
 
 
+def get_inspection_data():
+    with sqlite3.connect(DB_FILE) as conn:
+        c = conn.cursor()
+        return c.execute("SELECT * FROM inspection").fetchall()
+
+
 def clean_date(date) -> Union[datetime.date, datetime.datetime]:
     parsed_obj: Union[datetime.date, datetime.datetime]
     cal = parsedatetime.Calendar()
@@ -290,12 +296,3 @@ def lookup_site_data(site) -> Dict[str, str]:  # type: ignore
         c = conn.cursor()
         data = c.execute("SELECT * FROM site WHERE site_type='Port' AND name=?", (site,)).fetchone()
         return data
-
-#   with open(os.path.join(str(TWDFT_DATA_DIR),), "r") as f:
-#       csv_reader = csv.DictReader(f)
-#       for line in csv_reader:
-#           if (
-#               line["SiteTypeDesc"].strip() == "Port"
-#               and line["SiteName"].strip() == site
-#           ):
-#               return line
