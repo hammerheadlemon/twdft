@@ -266,6 +266,17 @@ def test_db():
         c.execute(f"""INSERT INTO inspector_inspections VALUES (?,?)""", (1, insp_id))
         c.execute(f"""INSERT INTO inspector_inspections VALUES (?,?)""", (2, insp_id))
 
+        # three man inspector
+        c.execute(
+            """
+            INSERT INTO inspection(site, date, status, time)
+            VALUES (1, "2038-10-13", "planning", "12:30");
+            """
+        )
+        insp_id = c.lastrowid
+        c.execute(f"""INSERT INTO inspector_inspections VALUES (?,?)""", (1, insp_id))
+        c.execute(f"""INSERT INTO inspector_inspections VALUES (?,?)""", (2, insp_id))
+        c.execute(f"""INSERT INTO inspector_inspections VALUES (?,?)""", (3, insp_id))
         conn.commit()
 
     yield TEST_DB

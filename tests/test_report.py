@@ -55,7 +55,7 @@ def test_get_inspection_data(test_db):
         assert row['time'] == "2pm"
 
 
-def test_multiple_inspector_tuple(test_db):
+def test_double_inspector_tuple(test_db):
     """
     When we specify an inspection id, we want the details of the inspection,
     including the inspectors, in a tuple. This is leading towards creating a
@@ -67,3 +67,19 @@ def test_multiple_inspector_tuple(test_db):
     assert inspection_data[1] == "Macmillian Port"
     assert inspection_data[3][0] == ("John", "McClaren")
     assert inspection_data[3][1] == ("Kelvin", "Muclaleik")
+
+def test_treble_inspector_tuple(test_db):
+    """
+    When we specify an inspection id, we want the details of the inspection,
+    including the inspectors, in a tuple. This is leading towards creating a
+    table in the terminal.
+
+    We know inspection 2 in the test_db has two inspectors assigned to it.
+    """
+    inspection_data = inspection_line(3, test_db)
+    assert inspection_data[1] == "Macmillian Port"
+    assert ("John", "McClaren") in inspection_data[3]
+    assert ("Kelvin", "Muclaleik") in inspection_data[3]
+    assert ("Steven", "Chrosssol") in inspection_data[3]
+
+
