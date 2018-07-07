@@ -47,12 +47,12 @@ def test_get_inspection_data(test_db):
             """
         )
         row = c.fetchone()
-        assert row['id'] == 1
-        assert row['name'] == "Macmillian Port"
-        assert row['first_name'] == "John"
-        assert row['last_name'] == "McClaren"
-        assert row['date'] == "2018-10-10"
-        assert row['time'] == "2pm"
+        assert row["id"] == 1
+        assert row["name"] == "Macmillian Port"
+        assert row["first_name"] == "John"
+        assert row["last_name"] == "McClaren"
+        assert row["date"] == "2018-10-10"
+        assert row["time"] == "2pm"
 
 
 def test_double_inspector_tuple(test_db):
@@ -68,6 +68,7 @@ def test_double_inspector_tuple(test_db):
     assert inspection_data[3][0] == ("John", "McClaren")
     assert inspection_data[3][1] == ("Kelvin", "Muclaleik")
 
+
 def test_treble_inspector_tuple(test_db):
     """
     When we specify an inspection id, we want the details of the inspection,
@@ -81,5 +82,3 @@ def test_treble_inspector_tuple(test_db):
     assert ("John", "McClaren") in inspection_data[3]
     assert ("Kelvin", "Muclaleik") in inspection_data[3]
     assert ("Steven", "Chrosssol") in inspection_data[3]
-
-
