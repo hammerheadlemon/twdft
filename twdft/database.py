@@ -251,10 +251,10 @@ def initial_db_setup() -> None:
             # next we want an inspector table
             c.execute(
                 """
-                CREATE TABLE inspector(
-                    id INTEGER PRIMARY KEY,
-                    first_name TEXT,
-                    last_name TEXT
+                create table inspector(
+                    id integer primary key,
+                    first_name text,
+                    last_name text
                 )
                 """
             )
