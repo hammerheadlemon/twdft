@@ -18,6 +18,44 @@ from tasklib import TaskWarrior, Task
 from .env import TWDFTRC, CARDS_DIR, TWDFT_DATA_DIR, SITE_DATA_FILE, DB_FILE
 
 
+
+def inspection_line(inspection_id: int, db_file: Union[str, None]=None) -> Tuple:
+    "Returns a tuple of key inspection data for listing in a terminal table."
+    if db_file:
+        db = db_file
+    else:
+        db = DB_FILE
+    with sqlite3.connect(db) as conn:
+        conn.row_factory = sqlite3.Row
+        c = conn.cursor()
+        c.execute(
+            f"""
+            SELECT
+                inspection.id,
+                site.name,
+                inspector.first_name,
+                inspector.last_name,
+                inspection.date,
+                inspection.time
+            FROM inspection
+            INNER JOIN site ON inspection.site=site.id
+            INNER JOIN inspector_inspections ON inspection.id=inspector_inspections.inspection
+            INNER JOIN inspector ON inspector.id=inspector_inspections.inspector
+            WHERE inspection.id={inspection_id}
+            """
+        )
+    data = c.fetchall()
+    if len(data) > 1:  # we have multiple inspectors
+        names = [(x['first_name'], x['last_name']) for x in data]
+        row = data[0]
+    else:
+        row = data[0]
+        names = [(row['first_name'], row['last_name'])]
+    return (row['id'], row['name'], row['date'], names)
+
+
+
+
 def get_inspection_data():
     with sqlite3.connect(DB_FILE) as conn:
         c = conn.cursor()

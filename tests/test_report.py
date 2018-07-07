@@ -1,5 +1,7 @@
 import sqlite3
 
+from twdft.helpers import inspection_line
+
 
 def test_get_site_name(test_db):
     with sqlite3.connect(test_db) as conn:
@@ -27,8 +29,9 @@ def test_get_inspector_name(test_db):
 
 def test_get_inspection_data(test_db):
     with sqlite3.connect(test_db) as conn:
+        conn.row_factory = sqlite3.Row
         c = conn.cursor()
-        row = c.execute(
+        c.execute(
             """
             SELECT
                 inspection.id,
@@ -42,5 +45,25 @@ def test_get_inspection_data(test_db):
             INNER JOIN inspector_inspections ON inspection.id=inspector_inspections.inspection
             INNER JOIN inspector ON inspector.id=inspector_inspections.inspector
             """
-        ).fetchall()
-        assert row[0] == (1, 'Macmillian Port', 'John', 'McClaren', '2018-10-10', '2pm')
+        )
+        row = c.fetchone()
+        assert row['id'] == 1
+        assert row['name'] == "Macmillian Port"
+        assert row['first_name'] == "John"
+        assert row['last_name'] == "McClaren"
+        assert row['date'] == "2018-10-10"
+        assert row['time'] == "2pm"
+
+
+def test_multiple_inspector_tuple(test_db):
+    """
+    When we specify an inspection id, we want the details of the inspection,
+    including the inspectors, in a tuple. This is leading towards creating a
+    table in the terminal.
+
+    We know inspection 2 in the test_db has two inspectors assigned to it.
+    """
+    inspection_data = inspection_line(2, test_db)
+    assert inspection_data[1] == "Macmillian Port"
+    assert inspection_data[3][0] == ("John", "McClaren")
+    assert inspection_data[3][1] == ("Kelvin", "Muclaleik")

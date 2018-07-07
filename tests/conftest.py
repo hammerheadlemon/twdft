@@ -245,14 +245,31 @@ def test_db():
         )
         conn.commit()
 
+        # single inspector
         c.execute(
-            """INSERT INTO inspection(
-                    site, date, status, time)
-                VALUES (1, "2018-10-10", "forwardlook", "2pm");
+            """
+            INSERT INTO inspection(site, date, status, time)
+            VALUES (1, "2018-10-10", "forwardlook", "2pm");
             """
         )
         insp_id = c.lastrowid
         c.execute(f"""INSERT INTO inspector_inspections VALUES (?,?)""", (1, insp_id))
+
+        # double inspector
+        c.execute(
+            """
+            INSERT INTO inspection(site, date, status, time)
+            VALUES (1, "2028-10-10", "forwardlook", "10:30");
+            """
+        )
+        insp_id = c.lastrowid
+        c.execute(f"""INSERT INTO inspector_inspections VALUES (?,?)""", (1, insp_id))
+        c.execute(f"""INSERT INTO inspector_inspections VALUES (?,?)""", (2, insp_id))
+
         conn.commit()
 
-    return TEST_DB
+    yield TEST_DB
+    c.execute("DROP TABLE inspection")
+    c.execute("DROP TABLE inspector_inspections")
+    c.execute("DROP TABLE site")
+    c.execute("DROP TABLE inspector")
