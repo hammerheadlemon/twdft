@@ -15,7 +15,7 @@ import parsedatetime
 from typing import List, Union, Dict, Tuple
 from tasklib import TaskWarrior, Task
 
-from .env import TWDFTRC, CARDS_DIR, TWDFT_DATA_DIR, SITE_DATA_FILE, DB_FILE
+from .env import TWDFTRC, CARDS_DIR, TWDFT_DATA_DIR, DB_FILE
 
 
 def inspection_line(inspection_id: int, db_file: Union[str, None] = None) -> Tuple:
