@@ -174,6 +174,7 @@ def inspection(
         if mine:
             create_task(
                 description=site.strip(),
+                inspection=1,
                 inspection_date=date,
                 inspection_time=inspectiontime,
                 inspection_status=inspectionstatus,
@@ -192,6 +193,7 @@ def inspection(
     if mine:
         create_task(
             description=site.strip(),
+            inspection=1,
             inspection_date=date,
             inspection_time=inspectiontime,
             inspection_status=inspectionstatus,
