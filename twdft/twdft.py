@@ -266,21 +266,23 @@ def rate(config, sortkey, limit, filter, team):
     print(
         Fore.CYAN
         + Style.BRIGHT
-        + "{:<63}{:<1}{:^17}{:<1}{:^15}{:<1}{:^15}{:<1}{:^9}".format(
+        + "{:<63}{:<1}{:^17}{:<1}{:^15}{:<1}{:^28}{:<1}{:^15}{:<1}{:^9}".format(
             "Site",
             "|",
             "Last Inspect.",
             "|",
             "Freq Target",
             "|",
+            "County",
+            "|",
             "Days Since",
             "|",
             "Along",
         )
     )
-    print("{:-<121}".format(""))
+    print("{:-<150}".format(""))
     for item in data:
-        if item[4] > 100:
+        if item[5] > 100:
             TERMCOL = Fore.RED
         else:
             TERMCOL = ""
@@ -291,9 +293,11 @@ def rate(config, sortkey, limit, filter, team):
         print("{:<1}".format("|"), end="")
         print("{:^15}".format(item[2]), end="")
         print("{:<1}".format("|"), end="")
+        print("{:^28}".format(item[3]), end="")
+        print("{:<1}".format("|"), end="")
         print("{:^15}".format(days.days), end="")
         print("{:<1}".format("|"), end="")
-        print(TERMCOL + "{:^9}".format(item[4]))
+        print(TERMCOL + "{:^9}".format(item[5]))
         print(Style.RESET_ALL, end="")
     if limit:
         print(

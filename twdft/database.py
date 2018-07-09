@@ -94,7 +94,7 @@ def clean_inspection_freq_data(
     takes a list of (site_name, last_inspection, frequence_target)
     tuples and converts t[x] into a date and t[2] into an integer.
     """
-    SORT_KEYS = {"last_inspection": 1, "freq_target": 2, "days_since": 3, "along": 4}
+    SORT_KEYS = {"last_inspection": 1, "freq_target": 2, "days_since": 4, "along": 5}
 
     errors = []
     out = []
@@ -104,6 +104,7 @@ def clean_inspection_freq_data(
         try:
             d_obj = convert_date_str(t[1])
             days = days_since(d_obj).days
+            county = t[3]
             percent_along_frequency_period = int((days / days_in_freq) * 100)
             if filter:
                 if filter in t[0]:
@@ -112,6 +113,7 @@ def clean_inspection_freq_data(
                             t[0],
                             d_obj,
                             frequency_target,
+                            county,
                             days,
                             percent_along_frequency_period,
                         )
@@ -122,6 +124,7 @@ def clean_inspection_freq_data(
                         t[0],
                         d_obj,
                         frequency_target,
+                        county,
                         days,
                         percent_along_frequency_period,
                     )
@@ -146,10 +149,10 @@ def get_inspection_periods_all_sites(db_name, team: str) -> List[Any]:
         raise
     c = conn.cursor()
     if not team:
-        c.execute("SELECT name, last_inspection, freq_target FROM site;")
+        c.execute("SELECT name, last_inspection, freq_target, county FROM site WHERE NOT site_type =\"PSA\"")
     else:
         team = " ".join(["Maritime", team])
-        c.execute("SELECT name, last_inspection, freq_target FROM site WHERE team=? AND NOT site_type =\"PSA\"", (team,))
+        c.execute("SELECT name, last_inspection, freq_target, county FROM site WHERE team=? AND NOT site_type =\"PSA\"", (team,))
     result = c.fetchall()
     conn.close()
     return result
