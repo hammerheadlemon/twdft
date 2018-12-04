@@ -152,7 +152,7 @@ def get_inspection_periods_all_sites(db_name, team: str) -> List[Any]:
         c.execute("SELECT name, last_inspection, freq_target, county FROM site WHERE NOT site_type =\"PSA\"")
     else:
         team = " ".join(["Maritime", team])
-        c.execute("SELECT name, last_inspection, freq_target, county FROM site WHERE team=? AND NOT site_type =\"PSA\"", (team,))
+        c.execute("SELECT name, last_inspection, freq_target, county FROM site WHERE team=? AND NOT site_type =\"PSA\" AND rdf=0", (team,))
     result = c.fetchall()
     conn.close()
     return result

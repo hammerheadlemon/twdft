@@ -40,8 +40,8 @@ def inspection_line(inspection_id: int, db_file: Union[str, None] = None) -> Tup
             INNER JOIN site ON inspection.site=site.id
             INNER JOIN inspector_inspections ON inspection.id=inspector_inspections.inspection
             INNER JOIN inspector ON inspector.id=inspector_inspections.inspector
-            WHERE inspection.id={inspection_id}
-            """
+            WHERE inspection.id=?
+            """, (inspection_id,)
         )
     data = c.fetchall()
     if len(data) > 1:  # we have multiple inspectors
